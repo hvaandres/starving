@@ -32,6 +32,7 @@ struct HomeView: View {
                     Image(systemName: "gearshape")
                 }
         }
+        .padding()
     }
 }
 

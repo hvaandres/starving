@@ -17,6 +17,7 @@
 		A3AA41672D44694C005BA1D8 /* ItemsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3AA41662D44694C005BA1D8 /* ItemsView.swift */; };
 		A3AA41692D446965005BA1D8 /* RemindersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3AA41682D446965005BA1D8 /* RemindersView.swift */; };
 		A3AA416B2D446A05005BA1D8 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3AA416A2D446A05005BA1D8 /* SettingsView.swift */; };
+		A3B01BAD2D489253005FBD51 /* AddItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B01BAC2D489253005FBD51 /* AddItemView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -31,6 +32,7 @@
 		A3AA41662D44694C005BA1D8 /* ItemsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemsView.swift; sourceTree = "<group>"; };
 		A3AA41682D446965005BA1D8 /* RemindersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemindersView.swift; sourceTree = "<group>"; };
 		A3AA416A2D446A05005BA1D8 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		A3B01BAC2D489253005FBD51 /* AddItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddItemView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -97,6 +99,7 @@
 				A3AA41662D44694C005BA1D8 /* ItemsView.swift */,
 				A3AA41682D446965005BA1D8 /* RemindersView.swift */,
 				A3AA416A2D446A05005BA1D8 /* SettingsView.swift */,
+				A3B01BAC2D489253005FBD51 /* AddItemView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -172,6 +175,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A3AA41532D4464B0005BA1D8 /* HomeView.swift in Sources */,
+				A3B01BAD2D489253005FBD51 /* AddItemView.swift in Sources */,
 				A3AA416B2D446A05005BA1D8 /* SettingsView.swift in Sources */,
 				A3AA41692D446965005BA1D8 /* RemindersView.swift in Sources */,
 				A3AA41672D44694C005BA1D8 /* ItemsView.swift in Sources */,
