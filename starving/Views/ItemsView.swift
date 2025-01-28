@@ -1,106 +1,206 @@
 import SwiftUI
 import SwiftData
 
+// MARK: - Custom Error
+enum ItemError: LocalizedError {
+    case saveFailed
+    case loadFailed
+    case invalidData
+    
+    var errorDescription: String? {
+        switch self {
+        case .saveFailed:
+            return "Failed to save changes"
+        case .loadFailed:
+            return "Failed to load your items"
+        case .invalidData:
+            return "Invalid data encountered"
+        }
+    }
+}
+
+// MARK: - ToolTipView
+struct ToolTipView: View {
+    let text: String
+    
+    var body: some View {
+        Text(text)
+            .font(.subheadline)
+            .foregroundColor(.secondary)
+            .multilineTextAlignment(.center)
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color(.systemGray6))
+            )
+            .padding(.horizontal)
+    }
+}
+
 struct ItemsView: View {
-    @Environment(\.modelContext) private var modelContext
+    // MARK: - Properties
+    @Environment(\.modelContext) private var context
     
     @Query(filter: Day.currentDayPredicate(),
            sort: \.date) private var today: [Day]
     
-    @Query(filter: #Predicate<Item> { $0.isHidden == false })
+    @Query(filter: #Predicate<Item> { $0.isHidden == false } )
     private var items: [Item]
     
-    @State private var showItemView = false
-    @State private var errorMessage: String?
-    @State private var showError = false
+    @State private var showAddView: Bool = false
+    @State private var errorMessage: String? = nil
+    @State private var showError: Bool = false
     
+    // MARK: - View
     var body: some View {
-        NavigationStack {
-            VStack(alignment: .leading, spacing: 20) {
-                Text("Items")
-                    .font(.largeTitle)
-                    .bold()
-                    .accessibilityAddTraits(.isHeader)
-                
-                Text("These are the items that you wanted to purchase. Now you can view and remember what you did your last time you went to shop!")
-                    .fixedSize(horizontal: false, vertical: true)
-                
-                List(items) { item in
-                    ItemRow(item: item, onCheckmark: {
-                        addItemToToday(item)
-                    })
-                }
-                .listStyle(.plain)
-                .accessibilityLabel("Shopping items list")
-                
-                Spacer()
-                
-                Button(action: {
-                    showItemView.toggle()
-                }) {
-                    HStack {
-                        Image(systemName: "plus.circle.fill")
-                        Text("Add a New Item")
-                    }
-                }
-                .buttonStyle(.borderedProminent)
-                .frame(maxWidth: .infinity, alignment: .center)
-                .accessibilityHint("Opens a form to add a new shopping item")
-                
-                Spacer()
+        VStack(spacing: 20) {
+            header
+            
+            if items.isEmpty {
+                emptyStateView
+            } else {
+                itemsList
             }
-            .padding()
-            .alert("Error", isPresented: $showError, presenting: errorMessage) { _ in
-                Button("OK") {}
-            } message: { message in
-                Text(message)
-            }
-            .sheet(isPresented: $showItemView) {
-                AddItemView()
-                    .presentationDetents([.fraction(0.2)])
-            }
+            
+            Spacer()
+            
+            addButton
+            
+            Spacer()
+        }
+        .sheet(isPresented: $showAddView) {
+            AddItemView()
+                .presentationDetents([.fraction(0.2)])
+        }
+        .alert("Error", isPresented: $showError, presenting: errorMessage) { _ in
+            Button("OK", role: .cancel) {}
+        } message: { message in
+            Text(message)
+        }
+        .onChange(of: errorMessage) { _, newValue in
+            showError = newValue != nil
         }
     }
     
-    private func addItemToToday(_ item: Item) {
+    // MARK: - Subviews
+    private var header: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Items")
+                .font(.largeTitle)
+                .bold()
+                .frame(maxWidth: .infinity, alignment: .leading)
+            
+            Text("This is the list of groceries that you need for the week")
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(.horizontal)
+    }
+    
+    private var emptyStateView: some View {
+        VStack {
+            Image("items")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(maxWidth: 300)
+            
+            ToolTipView(text: "Start by adding groceries that you might think will be good for the week")
+        }
+    }
+    
+    private var itemsList: some View {
+        List(items) { item in
+            ItemRow(item: item, isSelected: isItemSelected(item)) {
+                Task {
+                    toggleItem(item) // Remove 'await' as toggleItem is not async
+                }
+            }
+        }
+        .listStyle(.plain)
+    }
+    
+    private var addButton: some View {
+        Button(action: { showAddView.toggle() }) {
+            Text("Add New Item")
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color.black)
+                .foregroundColor(.white)
+                .cornerRadius(10)
+        }
+        .padding(.horizontal)
+    }
+    
+    // MARK: - Helper Methods
+    private func isItemSelected(_ item: Item) -> Bool {
+        getToday()?.items.contains(item) ?? false
+    }
+
+    private func toggleItem(_ item: Item) {
         do {
-            let currentDay = try getToday()
-            currentDay.item.append(item)
-            try modelContext.save()
+            guard let today = getToday() else {
+                throw ItemError.invalidData
+            }
+            
+            if today.items.contains(item) {
+                today.items.removeAll { $0 == item }
+            } else {
+                today.items.append(item)
+            }
+            
+            try context.save() // Save changes to the context
         } catch {
-            errorMessage = "Failed to add item: \(error.localizedDescription)"
-            showError = true
+            handleError(error) // Handle error if saving fails
+        }
+    }
+
+
+    private func getToday() -> Day? {
+        do {
+            if let existingDay = today.first {
+                return existingDay
+            }
+            
+            let newDay = Day()
+            context.insert(newDay)
+            try context.save()
+            return newDay
+        } catch {
+            handleError(error)
+            return nil
         }
     }
     
-    private func getToday() throws -> Day {
-        if let existingDay = today.first {
-            return existingDay
+    // MARK: - Error Handling
+    private func handleError(_ error: Error) {
+        let message: String
+        if let itemError = error as? ItemError {
+            message = itemError.errorDescription ?? "An unknown error occurred"
+        } else {
+            message = error.localizedDescription
         }
         
-        let newDay = Day()
-        modelContext.insert(newDay)
-        try modelContext.save()
-        return newDay
+        DispatchQueue.main.async {
+            self.errorMessage = message
+        }
     }
 }
 
-private struct ItemRow: View {
+// MARK: - ItemRow
+struct ItemRow: View {
     let item: Item
-    let onCheckmark: () -> Void
+    let isSelected: Bool
+    let action: () -> Void
     
     var body: some View {
         HStack {
             Text(item.title)
-                .accessibilityLabel("Item: \(item.title)")
-            
             Spacer()
             
-            Button(action: onCheckmark) {
-                Image(systemName: "checkmark.circle")
-                    .foregroundColor(.blue)
+            Button(action: action) {
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "checkmark.circle")
+                    .foregroundStyle(isSelected ? .green : .black)
+                    .imageScale(.large)
             }
-            .accessibilityLabel("Add \(item.title) to today's list")
         }
     }
 }
