@@ -44,7 +44,7 @@ struct ItemsView: View {
     @Query(filter: Day.currentDayPredicate(),
            sort: \.date) private var today: [Day]
     
-    @Query(filter: #Predicate<Item> { $0.isHidden == false } )
+    @Query(filter: #Predicate<Item> { $0.isHidden == false })
     private var items: [Item]
     
     @State private var showAddView: Bool = false
@@ -85,12 +85,12 @@ struct ItemsView: View {
     // MARK: - Subviews
     private var header: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Items")
+            Text("My Groceries")
                 .font(.largeTitle)
                 .bold()
                 .frame(maxWidth: .infinity, alignment: .leading)
             
-            Text("This is the list of groceries that you need for the week")
+            Text("Never forget what you need for the week again!")
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(.horizontal)
@@ -103,7 +103,7 @@ struct ItemsView: View {
                 .aspectRatio(contentMode: .fit)
                 .frame(maxWidth: 300)
             
-            ToolTipView(text: "Start by adding groceries that you might think will be good for the week")
+            ToolTipView(text: "Begin by adding groceries you think would be perfect for the week!")
         }
     }
     
@@ -132,7 +132,7 @@ struct ItemsView: View {
     
     // MARK: - Helper Methods
     private func isItemSelected(_ item: Item) -> Bool {
-        getToday()?.items.contains(item) ?? false
+        getToday()?.items.contains(where: { $0.id == item.id }) ?? false
     }
 
     private func toggleItem(_ item: Item) {
@@ -141,8 +141,9 @@ struct ItemsView: View {
                 throw ItemError.invalidData
             }
             
-            if today.items.contains(item) {
-                today.items.removeAll { $0 == item }
+            // Ensure comparison is done by ID to avoid reference issues
+            if let index = today.items.firstIndex(where: { $0.id == item.id }) {
+                today.items.remove(at: index)
             } else {
                 today.items.append(item)
             }
@@ -153,7 +154,6 @@ struct ItemsView: View {
         }
     }
 
-
     private func getToday() -> Day? {
         do {
             if let existingDay = today.first {
@@ -162,7 +162,7 @@ struct ItemsView: View {
             
             let newDay = Day()
             context.insert(newDay)
-            try context.save()
+            try context.save() // Save immediately after inserting
             return newDay
         } catch {
             handleError(error)
@@ -181,6 +181,7 @@ struct ItemsView: View {
         
         DispatchQueue.main.async {
             self.errorMessage = message
+            self.showError = true
         }
     }
 }

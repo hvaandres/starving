@@ -15,22 +15,26 @@ struct HomeView: View {
                     Text("Today")
                     Image(systemName: "square.and.pencil")
                 }
+                .hideBackButton()
             ItemsView()
                 .tabItem {
                     Text("Items")
                     Image(systemName: "carrot")
                 }
+                .hideBackButton()
             
             RemindersView()
                 .tabItem {
                     Text("reminder")
                     Image(systemName: "bell.and.waves.left.and.right")
                 }
+                .hideBackButton()
             SettingsView()
                 .tabItem {
                     Text("settings")
                     Image(systemName: "gearshape")
                 }
+                .hideBackButton()
         }
         .padding()
     }

@@ -20,6 +20,7 @@
 		A3AA41692D446965005BA1D8 /* RemindersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3AA41682D446965005BA1D8 /* RemindersView.swift */; };
 		A3AA416B2D446A05005BA1D8 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3AA416A2D446A05005BA1D8 /* SettingsView.swift */; };
 		A3B01BAD2D489253005FBD51 /* AddItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B01BAC2D489253005FBD51 /* AddItemView.swift */; };
+		A3CD06142D48BC1B0009FAD6 /* HideBackButtonModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3CD06132D48BC1B0009FAD6 /* HideBackButtonModifier.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -36,6 +37,7 @@
 		A3AA41682D446965005BA1D8 /* RemindersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemindersView.swift; sourceTree = "<group>"; };
 		A3AA416A2D446A05005BA1D8 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A3B01BAC2D489253005FBD51 /* AddItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddItemView.swift; sourceTree = "<group>"; };
+		A3CD06132D48BC1B0009FAD6 /* HideBackButtonModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HideBackButtonModifier.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -69,6 +71,7 @@
 		A3AA414F2D4464B0005BA1D8 /* starving */ = {
 			isa = PBXGroup;
 			children = (
+				A3CD06102D48BBC30009FAD6 /* Modifiers */,
 				A3AA41632D446737005BA1D8 /* Views */,
 				A3AA415E2D4464E9005BA1D8 /* Model */,
 				A3AA41502D4464B0005BA1D8 /* starvingApp.swift */,
@@ -107,6 +110,14 @@
 				A3B01BAC2D489253005FBD51 /* AddItemView.swift */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		A3CD06102D48BBC30009FAD6 /* Modifiers */ = {
+			isa = PBXGroup;
+			children = (
+				A3CD06132D48BC1B0009FAD6 /* HideBackButtonModifier.swift */,
+			);
+			path = Modifiers;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -193,6 +204,7 @@
 				A3AA41672D44694C005BA1D8 /* ItemsView.swift in Sources */,
 				A3AA41602D44654F005BA1D8 /* Item.swift in Sources */,
 				A3AA41622D44663B005BA1D8 /* Day.swift in Sources */,
+				A3CD06142D48BC1B0009FAD6 /* HideBackButtonModifier.swift in Sources */,
 				A3AA41652D446938005BA1D8 /* TodayView.swift in Sources */,
 				A3AA41512D4464B0005BA1D8 /* starvingApp.swift in Sources */,
 			);
