@@ -82,7 +82,6 @@ struct ItemsView: View {
         }
     }
     
-    // MARK: - Subviews
     private var header: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("My Groceries")
@@ -110,9 +109,7 @@ struct ItemsView: View {
     private var itemsList: some View {
         List(items) { item in
             ItemRow(item: item, isSelected: isItemSelected(item)) {
-                Task {
-                    toggleItem(item) // Remove 'await' as toggleItem is not async
-                }
+                toggleItem(item)
             }
         }
         .listStyle(.plain)
@@ -130,30 +127,28 @@ struct ItemsView: View {
         .padding(.horizontal)
     }
     
-    // MARK: - Helper Methods
     private func isItemSelected(_ item: Item) -> Bool {
         getToday()?.items.contains(where: { $0.id == item.id }) ?? false
     }
-
+    
     private func toggleItem(_ item: Item) {
         do {
             guard let today = getToday() else {
                 throw ItemError.invalidData
             }
             
-            // Ensure comparison is done by ID to avoid reference issues
             if let index = today.items.firstIndex(where: { $0.id == item.id }) {
                 today.items.remove(at: index)
             } else {
                 today.items.append(item)
             }
             
-            try context.save() // Save changes to the context
+            try context.save()
         } catch {
-            handleError(error) // Handle error if saving fails
+            handleError(error)
         }
     }
-
+    
     private func getToday() -> Day? {
         do {
             if let existingDay = today.first {
@@ -162,7 +157,7 @@ struct ItemsView: View {
             
             let newDay = Day()
             context.insert(newDay)
-            try context.save() // Save immediately after inserting
+            try context.save()
             return newDay
         } catch {
             handleError(error)
@@ -170,7 +165,6 @@ struct ItemsView: View {
         }
     }
     
-    // MARK: - Error Handling
     private func handleError(_ error: Error) {
         let message: String
         if let itemError = error as? ItemError {
@@ -186,25 +180,6 @@ struct ItemsView: View {
     }
 }
 
-// MARK: - ItemRow
-struct ItemRow: View {
-    let item: Item
-    let isSelected: Bool
-    let action: () -> Void
-    
-    var body: some View {
-        HStack {
-            Text(item.title)
-            Spacer()
-            
-            Button(action: action) {
-                Image(systemName: isSelected ? "checkmark.circle.fill" : "checkmark.circle")
-                    .foregroundStyle(isSelected ? .green : .black)
-                    .imageScale(.large)
-            }
-        }
-    }
-}
 
 #Preview {
     ItemsView()
