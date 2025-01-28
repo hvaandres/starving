@@ -8,32 +8,40 @@
 import SwiftUI
 
 struct HomeView: View {
+    @State private var selectedTab: Tab = .today
+    
     var body: some View {
-        TabView {
-            TodayView()
+        TabView(selection: $selectedTab) {
+            TodayView(selectedTab: $selectedTab)
                 .tabItem {
                     Text("Today")
                     Image(systemName: "square.and.pencil")
                 }
+                .tag(Tab.today)
                 .hideBackButton()
+            
             ItemsView()
                 .tabItem {
                     Text("Items")
                     Image(systemName: "carrot")
                 }
+                .tag(Tab.items)
                 .hideBackButton()
             
             RemindersView()
                 .tabItem {
-                    Text("reminder")
+                    Text("Reminder")
                     Image(systemName: "bell.and.waves.left.and.right")
                 }
+                .tag(Tab.reminders)
                 .hideBackButton()
+            
             SettingsView()
                 .tabItem {
-                    Text("settings")
+                    Text("Settings")
                     Image(systemName: "gearshape")
                 }
+                .tag(Tab.settings)
                 .hideBackButton()
         }
         .padding()
