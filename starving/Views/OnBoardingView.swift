@@ -1,10 +1,3 @@
-//
-//  OnBoardingView.swift
-//  starving
-//
-//  Created by Alan Haro on 1/24/25.
-//
-
 import SwiftUI
 import SplineRuntime
 
@@ -30,7 +23,7 @@ struct OnBoardingView: View {
                 
                 Spacer()
                 
-                NavigationLink(destination: TodayView()) {
+                NavigationLink(destination: HomeView()) {
                     Text("Get Started")
                         .fontWeight(.semibold)
                         .frame(maxWidth: .infinity)
@@ -42,7 +35,8 @@ struct OnBoardingView: View {
                 .padding(.horizontal, 20)
                 .padding(.bottom, 30)
             }
-            .navigationBarHidden(true)
+            .navigationBarBackButtonHidden(true)  // Hide the back button
+            .navigationBarHidden(true)            // Hide the navigation bar entirely
         }
     }
 }

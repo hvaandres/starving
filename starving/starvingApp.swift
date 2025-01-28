@@ -12,8 +12,10 @@ import SwiftData
 struct starvingApp: App {
     var body: some Scene {
         WindowGroup {
-            HomeView()
+            OnBoardingView()
                 .modelContainer(for: [Item.self, Day.self])
+//            HomeView()
+//                .modelContainer(for: [Item.self, Day.self])
         }
     }
 }
