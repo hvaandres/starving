@@ -7,176 +7,183 @@
 
 import SwiftUI
 
+// Create an environment object to manage app-wide theme
+class ThemeSettings: ObservableObject {
+    @Published var isDarkMode: Bool {
+        didSet {
+            UserDefaults.standard.set(isDarkMode, forKey: "isDarkMode")
+        }
+    }
+    
+    init() {
+        self.isDarkMode = UserDefaults.standard.bool(forKey: "isDarkMode")
+    }
+}
+
 struct SettingsView: View {
+    @StateObject private var themeSettings = ThemeSettings()
+    @Environment(\.openURL) var openURL
     
     private let reviewUrl = URL(string: "https://apps.apple.com/")!
     private let shareUrl = URL(string: "https://apps.apple.com/app/")!
     private let privacyUrl = URL(string: "https://github.com")!
-    private let githubProfile = URL(string: "https://github.com/hvaandres")
+    private let githubProfile = URL(string: "https://github.com/hvaandres")!
     private let feedbackEmail = "hello@aharo.dev"
     
     // Developer Info links
     private let spaceCreatorsLink = URL(string: "https://discord.gg/5Psmx9Ew")!
     private let mediumLink = URL(string: "https://medium.com/@ithvaandres")!
     
-    // State variables for toggles
-    @State private var notificationsEnabled: Bool = false
-    @State private var selectedLanguage: String = "English"
-    @State private var isNightModeEnabled: Bool = false
-    
     var body: some View {
-        
-        ZStack {
-            // Background color change for night mode
-            Color(isNightModeEnabled ? .black : .white)
-                .edgesIgnoringSafeArea(.all)  // Ensure it fills the entire screen
-
-            VStack(alignment: .leading, spacing: 20) {
-                
-                // Title
-                Text("Settings")
-                    .font(.largeTitle)
-                    .bold()
-                    .foregroundColor(isNightModeEnabled ? .white : .black)
-                    .padding(.top, 40)
+        NavigationView {
+            ZStack {
+                Group {
+                    if themeSettings.isDarkMode {
+                        Color.black
+                    } else {
+                        Color.white
+                    }
+                }
+                .edgesIgnoringSafeArea(.all)
                 
                 ScrollView(.vertical, showsIndicators: false) {
-                    VStack(alignment: .leading, spacing: 25) {
-                        
-                        // Created By Section
-                        VStack(alignment: .leading, spacing: 15) {
-                            Text("Created By")
-                                .font(.title2)
-                                .fontWeight(.bold)
-                                .foregroundColor(isNightModeEnabled ? .white : .black)
-                            
-                            Text("Made by Andres Haro")
-                                .font(.body)
-                                .foregroundColor(isNightModeEnabled ? .white : .black)
-                                .padding(.bottom, 5)
-                            
-                            Text("Andres Haro is a developer passionate about building innovative software, teaching others, and contributing to open-source communities.")
-                                .font(.body)
-                                .foregroundColor(isNightModeEnabled ? .white : .gray)
-                                .padding(.bottom, 5)
-                            
-                            // Links to developer's work
-                            linkRow(imageName: "link", label: "Space Creators Community", destination: spaceCreatorsLink)
-                            linkRow(imageName: "link", label: "Read on Medium", destination: mediumLink)
+                    VStack(spacing: 24) {
+                        // Appearance Section
+                        SettingsSection(title: "Appearance", isDarkMode: themeSettings.isDarkMode) {
+                            Toggle("Dark Mode", isOn: $themeSettings.isDarkMode)
+                                .toggleStyle(SwitchToggleStyle(tint: .blue))
                         }
-                        .padding(.horizontal)
                         
-                        // General Settings Section
-                        VStack(alignment: .leading, spacing: 15) {
-                            Text("General Settings")
-                                .font(.title2)
+                        // Developer Section
+                        SettingsSection(title: "Developer", isDarkMode: themeSettings.isDarkMode) {
+                            Text("Andres Haro")
+                                .font(.title3)
                                 .fontWeight(.bold)
-                                .foregroundColor(isNightModeEnabled ? .white : .black)
+                                .foregroundColor(themeSettings.isDarkMode ? .white : .black)
                             
-                            // Notifications Toggle
-                            Toggle("Enable Notifications", isOn: $notificationsEnabled)
-                                .toggleStyle(SwitchToggleStyle(tint: .green))
+                            Text("Software engineer passionate about building innovative apps and teaching others.")
+                                .font(.subheadline)
+                                .foregroundColor(Color(.systemGray))
+                                .padding(.bottom, 8)
                             
-                            // Language Picker
-                            HStack {
-                                Text("Language")
-                                    .font(.body)
-                                    .foregroundColor(isNightModeEnabled ? .white : .black)
-                                Spacer()
-                                Picker("Select Language", selection: $selectedLanguage) {
-                                    Text("English").tag("English")
-                                    Text("Spanish").tag("Spanish")
-                                    Text("Portuguese").tag("Portuguese")
-                                }
-                                .pickerStyle(MenuPickerStyle())
-                                .frame(width: 150)
-                                Text(selectedLanguage)
-                                    .font(.body)
-                                    .foregroundColor(isNightModeEnabled ? .white : .gray)
-                            }
-                            
-                            // Night Mode Toggle
-                            Toggle("Night Mode", isOn: $isNightModeEnabled)
-                                .toggleStyle(SwitchToggleStyle(tint: .green))
+                            LinkButton(icon: "ellipsis.message", text: "Join Space Creators", url: spaceCreatorsLink, isDarkMode: themeSettings.isDarkMode)
+                            LinkButton(icon: "doc.text", text: "Read on Medium", url: mediumLink, isDarkMode: themeSettings.isDarkMode)
+                            LinkButton(icon: "link", text: "GitHub Profile", url: githubProfile, isDarkMode: themeSettings.isDarkMode)
                         }
-                        .padding(.horizontal)
                         
-                        // Read / Rate / Recommend / Feedback Section
-                        VStack(alignment: .leading, spacing: 15) {
-                            Text("Read / Rate / Recommend / Feedback")
-                                .font(.title2)
-                                .fontWeight(.bold)
-                                .foregroundColor(isNightModeEnabled ? .white : .black)
+                        // App Section
+                        SettingsSection(title: "App", isDarkMode: themeSettings.isDarkMode) {
+                            LinkButton(icon: "star", text: "Rate on App Store", url: reviewUrl, isDarkMode: themeSettings.isDarkMode)
+                            LinkButton(icon: "square.and.arrow.up", text: "Share App", url: shareUrl, isDarkMode: themeSettings.isDarkMode)
                             
-                            // Rate the app
-                            linkRow(imageName: "star.bubble", label: "Rate the app", destination: reviewUrl)
-                            
-                            // Recommend the app
-                            ShareLink(item: shareUrl) {
-                                HStack {
-                                    Image(systemName: "arrowshape.turn.up.right")
-                                    Text("Recommend the app")
-                                }
-                            }
-                            
-                            // Submit feedback
+                            // Custom LinkButton for email feedback
                             Button {
                                 submitFeedback()
                             } label: {
                                 HStack {
-                                    Image(systemName: "quote.bubble")
-                                    Text("Submit feedback")
+                                    Image(systemName: "envelope")
+                                    Text("Send Feedback")
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .font(.caption)
+                                        .foregroundColor(Color(.systemGray))
                                 }
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(themeSettings.isDarkMode ? Color(.systemGray6) : Color(.systemGray6))
+                                .cornerRadius(12)
                             }
+                            .buttonStyle(PlainButtonStyle())
+                            .foregroundColor(themeSettings.isDarkMode ? .white : .primary)
                         }
-                        .padding(.horizontal)
+                        
+                        // App Info
+                        VStack(spacing: 4) {
+                            Text("Starving App")
+                                .font(.footnote)
+                                .foregroundColor(Color(.systemGray))
+                            Text("Version 1.0.0")
+                                .font(.caption)
+                                .foregroundColor(Color(.systemGray))
+                        }
+                        .padding(.top, 24)
                     }
-                    .padding(.bottom)
+                    .padding()
                 }
-                .background(isNightModeEnabled ? Color.black : Color.white)
             }
+            .navigationTitle("Settings")
+            .navigationBarTitleDisplayMode(.large)
         }
-    }
-    
-    private func linkRow(imageName: String, label: String, destination: URL) -> some View {
-        Link(destination: destination) {
-            HStack {
-                Image(systemName: imageName)
-                Text(label)
-                    .font(.body)
-                    .fontWeight(.medium)
-            }
-            .padding(.vertical, 8)
-            .padding(.horizontal, 10)
-            .background(Color(UIColor.systemGray6)) // Slight background for each row
-            .cornerRadius(8)
-        }
-        .buttonStyle(PlainButtonStyle()) // To avoid default link behavior
-        .foregroundColor(isNightModeEnabled ? .white : .primary) // Text color
+        .environmentObject(themeSettings)
     }
     
     private func submitFeedback() {
-        guard let mailUrl = createMailUrl() else {
-            print("Couldn't create mail URL")
-            return
-        }
-        
+        guard let mailUrl = createMailUrl() else { return }
         if UIApplication.shared.canOpenURL(mailUrl) {
             UIApplication.shared.open(mailUrl)
-        } else {
-            print("Couldn't open mail client")
         }
     }
     
     private func createMailUrl() -> URL? {
-        var mailUrlComponents = URLComponents()
-        mailUrlComponents.scheme = "mailto"
-        mailUrlComponents.path = feedbackEmail
-        mailUrlComponents.queryItems = [
+        var components = URLComponents()
+        components.scheme = "mailto"
+        components.path = feedbackEmail
+        components.queryItems = [
             URLQueryItem(name: "subject", value: "Feedback for Starving app!")
         ]
-        
-        return mailUrlComponents.url
+        return components.url
+    }
+}
+
+// MARK: - Supporting Views
+struct SettingsSection<Content: View>: View {
+    let title: String
+    let isDarkMode: Bool
+    let content: Content
+    
+    init(title: String, isDarkMode: Bool, @ViewBuilder content: () -> Content) {
+        self.title = title
+        self.isDarkMode = isDarkMode
+        self.content = content()
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text(title)
+                .font(.headline)
+                .foregroundColor(isDarkMode ? .white : .black)
+            
+            content
+        }
+        .padding()
+        .background(isDarkMode ? Color(.systemGray6) : Color(.systemGray6))
+        .cornerRadius(16)
+    }
+}
+
+struct LinkButton: View {
+    let icon: String
+    let text: String
+    let url: URL
+    let isDarkMode: Bool
+    
+    var body: some View {
+        Link(destination: url) {
+            HStack {
+                Image(systemName: icon)
+                Text(text)
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundColor(Color(.systemGray))
+            }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(isDarkMode ? Color(.systemGray6) : Color(.systemGray6))
+            .cornerRadius(12)
+        }
+        .buttonStyle(PlainButtonStyle())
+        .foregroundColor(isDarkMode ? .white : .primary)
     }
 }
 

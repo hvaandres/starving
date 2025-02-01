@@ -55,7 +55,7 @@ struct TodayView: View {
     }
     
     private var messageView: some View {
-        Text("Don't forget to check one more time if this all you needed for today or for the week")
+        Text("Don't forget to check one more time if this is all you needed for today or for the week")
             .frame(maxWidth: .infinity, alignment: .leading)
     }
     
@@ -75,7 +75,7 @@ struct TodayView: View {
                 .aspectRatio(contentMode: .fit)
                 .frame(maxWidth: 300)
             
-            ToolTipView(text: "Take a little of your time to check and review what items are most important for you")
+            ToolTipView(text: "Take a little of your time to check and review your grocery list!")
             
             logButton
             
@@ -88,8 +88,12 @@ struct TodayView: View {
             selectedTab = .items
         } label: {
             Text("Log")
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color.black)
+                .foregroundColor(.white)
+                .cornerRadius(10)
         }
-        .buttonStyle(.borderedProminent)
     }
 }
 
