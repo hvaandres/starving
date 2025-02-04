@@ -10,7 +10,7 @@ struct OnBoardingView: View {
                     .scaledToFill()
                 
                 VStack(spacing: 12) {
-                    Text("Let's Grab the Groceries!")
+                    Text("Welcome to Starving!")
                         .font(.title.bold())
                         .foregroundColor(.primary)
                     
@@ -25,12 +25,11 @@ struct OnBoardingView: View {
                 
                 NavigationLink(destination: HomeView()) {
                     Text("Get Started")
-                        .fontWeight(.semibold)
                         .frame(maxWidth: .infinity)
                         .padding()
                         .background(Color.black)
                         .foregroundColor(.white)
-                        .cornerRadius(30)
+                        .cornerRadius(10)
                 }
                 .padding(.horizontal, 20)
                 .padding(.bottom, 30)
@@ -43,8 +42,7 @@ struct OnBoardingView: View {
 
 struct OnBoard3DView: View {
     private let sceneURL: URL
-    
-    init(urlString: String = "https://build.spline.design/cwvVoPFDSQIgnL7DFpqi/scene.splineswift") {
+    init(urlString: String = "https://build.spline.design/g13uP1vc88dkrNdSVWc4/scene.splineswift") {
         guard let url = URL(string: urlString) else {
             // Fallback to local resource if URL is invalid
             self.sceneURL = Bundle.main.url(forResource: "scene", withExtension: "splineswift")!

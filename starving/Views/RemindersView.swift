@@ -99,6 +99,7 @@ struct RemindersView: View {
                     statusCard
                 }
                 infoSection
+                imageSection
             }
             .padding()
         }
@@ -218,7 +219,16 @@ struct RemindersView: View {
         .background(Theme.secondaryColor)
         .cornerRadius(15)
     }
-    
+
+    private var imageSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Image("reminders")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(maxWidth: .infinity)
+                .padding(.top, 16)
+        }
+    }
     // MARK: - Helper Functions
     
     private func setupInitialState() {
