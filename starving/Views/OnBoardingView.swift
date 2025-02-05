@@ -42,7 +42,7 @@ struct OnBoardingView: View {
 
 struct OnBoard3DView: View {
     private let sceneURL: URL
-    init(urlString: String = "https://build.spline.design/g13uP1vc88dkrNdSVWc4/scene.splineswift") {
+    init(urlString: String = "https://build.spline.design/5Wwe2cmsTpWNKQ4J9Fph/scene.splineswift") {
         guard let url = URL(string: urlString) else {
             // Fallback to local resource if URL is invalid
             self.sceneURL = Bundle.main.url(forResource: "scene", withExtension: "splineswift")!
@@ -56,3 +56,5 @@ struct OnBoard3DView: View {
             .ignoresSafeArea()
     }
 }
+
+
