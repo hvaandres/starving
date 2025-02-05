@@ -26,7 +26,7 @@ struct SettingsView: View {
     
     private let reviewUrl = URL(string: "https://apps.apple.com/")!
     private let shareUrl = URL(string: "https://apps.apple.com/app/")!
-    private let privacyUrl = URL(string: "https://github.com")!
+    private let privacyUrl = URL(string: "https://ithvaandres.medium.com")!
     private let githubProfile = URL(string: "https://github.com/hvaandres")!
     private let feedbackEmail = "hello@aharo.dev"
     
@@ -49,10 +49,10 @@ struct SettingsView: View {
                 ScrollView(.vertical, showsIndicators: false) {
                     VStack(spacing: 24) {
                         // Appearance Section
-                        SettingsSection(title: "Appearance", isDarkMode: themeSettings.isDarkMode) {
-                            Toggle("Dark Mode", isOn: $themeSettings.isDarkMode)
-                                .toggleStyle(SwitchToggleStyle(tint: .blue))
-                        }
+//                        SettingsSection(title: "Appearance", isDarkMode: themeSettings.isDarkMode) {
+//                            Toggle("Dark Mode", isOn: $themeSettings.isDarkMode)
+//                                .toggleStyle(SwitchToggleStyle(tint: .blue))
+//                        }
                         
                         // Developer Section
                         SettingsSection(title: "Developer", isDarkMode: themeSettings.isDarkMode) {

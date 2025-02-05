@@ -6,6 +6,14 @@
 //
 
 
+//
+//  TodayView.swift
+//  starving
+//
+//  Created by Alan Haro on 1/24/25.
+//
+
+
 import SwiftUI
 import SwiftData
 import UserNotifications
@@ -90,17 +98,30 @@ struct RemindersView: View {
     }
     
     var body: some View {
-        ScrollView {
-            VStack(spacing: 24) {
-                header
-                reminderToggle
-                if isRemindersOn {
-                    timeSelectionSection
-                    statusCard
-                }
-                infoSection
-                imageSection
-            }
+        ScrollView(showsIndicators: false) {
+                    VStack(spacing: 24) {
+                        header
+                        reminderToggle
+                        
+                        Group {
+                            if isRemindersOn {
+                                timeSelectionSection
+                                statusCard
+                                infoSection
+                            } else {
+                                infoSection
+                                if !isRemindersOn {  // Explicit check
+                                    VStack(alignment: .leading, spacing: 16) {
+                                        Image("reminders")
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fit)
+                                            .frame(maxWidth: .infinity)
+                                            .padding(.top, 16)
+                                    }
+                                }
+                            }
+                        }
+                    }
             .padding()
         }
         .background(Color(.systemBackground))

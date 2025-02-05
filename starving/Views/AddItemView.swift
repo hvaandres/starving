@@ -9,44 +9,38 @@ import SwiftUI
 import SwiftData
 
 struct AddItemView: View {
-    @Environment(\.dismiss) private var
-        dismiss
-    @Environment(\.modelContext) private var
-        context
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var context
     @State private var itemTitle = ""
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             TextField("What groceries do you need to purchased", text: $itemTitle)
                 .textFieldStyle(.roundedBorder)
             
-            Button("Add"){
+            Button(action: {
                 addItem()
-                
                 itemTitle = ""
-                
                 dismiss()
+            }) {
+                Text("Add")
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.black)
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
             }
-            .buttonStyle(.borderedProminent)
-            .disabled(itemTitle
-                .trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            )
+            .disabled(itemTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }
         .padding()
-        
     }
     
-    func addItem(){
-        
-        let cleanedTitle =
-        itemTitle.trimmingCharacters(in: .whitespacesAndNewlines)
-        
+    func addItem() {
+        let cleanedTitle = itemTitle.trimmingCharacters(in: .whitespacesAndNewlines)
         context.insert(Item(title: cleanedTitle))
-        
-        try?  context.save()
-        
+        try? context.save()
     }
 }
-
 
 #Preview {
     AddItemView()
