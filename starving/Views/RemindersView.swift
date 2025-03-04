@@ -121,8 +121,9 @@ struct RemindersView: View {
                                 }
                             }
                         }
+                        
                     }
-            .padding()
+                    .padding()
         }
         .background(Color(.systemBackground))
         .onAppear(perform: setupInitialState)
