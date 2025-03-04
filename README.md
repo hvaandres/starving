@@ -16,3 +16,6 @@ Starving is your ultimate grocery shopping companion, designed to simplify your 
 <p align="center"> <img src="https://github.com/user-attachments/assets/57f4457d-9143-4988-91c2-d45206d13eed" width="300"> <img src="https://github.com/user-attachments/assets/6af0ba5d-340e-4a55-93cf-96a33ef42072"width="300"> </p>
 
 <p align="center"> <img src="https://github.com/user-attachments/assets/b92dc940-c89b-4faf-a5e8-02a7486cf322" width="300"> <img src="https://github.com/user-attachments/assets/1dcab437-74f2-410d-b504-f9b838ef5a93"width="300"> </p>
+
+## License
+© 2025 Alan Andres Haro. All rights reserved.
