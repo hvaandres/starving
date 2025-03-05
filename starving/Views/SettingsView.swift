@@ -24,8 +24,8 @@ struct SettingsView: View {
     @StateObject private var themeSettings = ThemeSettings()
     @Environment(\.openURL) var openURL
     
-    private let reviewUrl = URL(string: "https://apps.apple.com/")!
-    private let shareUrl = URL(string: "https://apps.apple.com/app/")!
+    private let reviewUrl = URL(string: "https://apps.apple.com/us/app/starving-shopping-list/id6742771179")!
+    private let shareUrl = URL(string: "https://apps.apple.com/us/app/starving-shopping-list/id6742771179")!
     private let privacyUrl = URL(string: "https://ithvaandres.medium.com")!
     private let githubProfile = URL(string: "https://github.com/hvaandres")!
     private let feedbackEmail = "hello@aharo.dev"
