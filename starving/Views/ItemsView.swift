@@ -89,7 +89,7 @@ struct ItemsView: View {
                 .bold()
                 .frame(maxWidth: .infinity, alignment: .leading)
             
-            Text("Never forget what you need for the week again!")
+            Text("Never forget your weekly needs! Add groceries and select items to move them to the Today’s tab.")
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(.horizontal)
@@ -102,7 +102,7 @@ struct ItemsView: View {
                 .aspectRatio(contentMode: .fit)
                 .frame(maxWidth: 300)
             
-            ToolTipView(text: "Begin by adding groceries you think would be perfect for the week!")
+            ToolTipView(text: "Start by adding the groceries you’ll need for the week, and be sure to select the items on this screen to move them to the Today’s tab!")
         }
     }
     
@@ -118,11 +118,8 @@ struct ItemsView: View {
     private var addButton: some View {
         Button(action: { showAddView.toggle() }) {
             Text("Add New Item")
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(Color.black)
-                .foregroundColor(.white)
-                .cornerRadius(10)
+                .font(.headline)
+                .primaryButtonStyle()
         }
         .padding(.horizontal)
     }

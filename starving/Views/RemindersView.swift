@@ -35,7 +35,9 @@ struct ReminderTimeCard: View {
             Image(systemName: "bell.circle.fill")
                 .font(.system(size: 24))
             Text(time)
-                .font(.headline)
+                .font(.subheadline) // Changed from .headline to .subheadline
+                .lineLimit(1)       // Ensure single line
+                .minimumScaleFactor(0.8) // Allow text to scale down if needed
         }
         .padding()
         .frame(width: 100)

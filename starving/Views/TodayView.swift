@@ -72,7 +72,7 @@ struct TodayView: View {
     }
     
     private var messageView: some View {
-        Text("Don't forget to check one more time if this is all you needed for today or for the week")
+        Text("Before you go, double-check your list! Swipe right to remove unpurchased items—they’ll stay in the Items tab.")
             .frame(maxWidth: .infinity, alignment: .leading)
     }
     
@@ -119,11 +119,8 @@ struct TodayView: View {
             selectedTab = .items
         } label: {
             Text("Log")
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(Color.black)
-                .foregroundColor(.white)
-                .cornerRadius(10)
+                .font(.headline)
+                .primaryButtonStyle()
         }
         .padding(.horizontal)
     }
