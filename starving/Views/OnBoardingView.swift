@@ -2,6 +2,8 @@ import SwiftUI
 import SplineRuntime
 
 struct OnBoardingView: View {
+    @Binding var hasCompletedOnboarding: Bool
+    
     var body: some View {
         NavigationStack {
             VStack(spacing: 20) {
@@ -23,7 +25,10 @@ struct OnBoardingView: View {
                 
                 Spacer()
                 
-                NavigationLink(destination: HomeView()) {
+                Button {
+                    // Set the flag to true when the user taps "Get Started"
+                    hasCompletedOnboarding = true
+                } label: {
                     Text("Get Started")
                         .frame(maxWidth: .infinity)
                         .padding()
@@ -34,8 +39,8 @@ struct OnBoardingView: View {
                 .padding(.horizontal, 20)
                 .padding(.bottom, 30)
             }
-            .navigationBarBackButtonHidden(true)  // Hide the back button
-            .navigationBarHidden(true)            // Hide the navigation bar entirely
+            .navigationBarBackButtonHidden(true)
+            .navigationBarHidden(true)
         }
     }
 }

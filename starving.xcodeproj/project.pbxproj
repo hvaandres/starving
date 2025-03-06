@@ -20,6 +20,7 @@
 		A3AA41692D446965005BA1D8 /* RemindersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3AA41682D446965005BA1D8 /* RemindersView.swift */; };
 		A3AA416B2D446A05005BA1D8 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3AA416A2D446A05005BA1D8 /* SettingsView.swift */; };
 		A3B01BAD2D489253005FBD51 /* AddItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B01BAC2D489253005FBD51 /* AddItemView.swift */; };
+		A3C18C032D795D33008C9346 /* StyleModifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3C18C022D795D33008C9346 /* StyleModifiers.swift */; };
 		A3C595BE2D4967B700E77EF9 /* ItemRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3C595BD2D4967B700E77EF9 /* ItemRow.swift */; };
 		A3C8B3072D494EDF006D8D07 /* Tab.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3C8B3062D494EDF006D8D07 /* Tab.swift */; };
 		A3CD06142D48BC1B0009FAD6 /* HideBackButtonModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3CD06132D48BC1B0009FAD6 /* HideBackButtonModifier.swift */; };
@@ -39,6 +40,7 @@
 		A3AA41682D446965005BA1D8 /* RemindersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemindersView.swift; sourceTree = "<group>"; };
 		A3AA416A2D446A05005BA1D8 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A3B01BAC2D489253005FBD51 /* AddItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddItemView.swift; sourceTree = "<group>"; };
+		A3C18C022D795D33008C9346 /* StyleModifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StyleModifiers.swift; sourceTree = "<group>"; };
 		A3C595BD2D4967B700E77EF9 /* ItemRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemRow.swift; sourceTree = "<group>"; };
 		A3C8B3062D494EDF006D8D07 /* Tab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tab.swift; sourceTree = "<group>"; };
 		A3CD06132D48BC1B0009FAD6 /* HideBackButtonModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HideBackButtonModifier.swift; sourceTree = "<group>"; };
@@ -98,6 +100,7 @@
 			children = (
 				A3AA415F2D44654F005BA1D8 /* Item.swift */,
 				A3AA41612D44663B005BA1D8 /* Day.swift */,
+				A3C18C022D795D33008C9346 /* StyleModifiers.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -208,6 +211,7 @@
 				A3AA416B2D446A05005BA1D8 /* SettingsView.swift in Sources */,
 				A3C8B3072D494EDF006D8D07 /* Tab.swift in Sources */,
 				A3A5CE692D48A259004FCA74 /* OnBoardingView.swift in Sources */,
+				A3C18C032D795D33008C9346 /* StyleModifiers.swift in Sources */,
 				A3AA41692D446965005BA1D8 /* RemindersView.swift in Sources */,
 				A3AA41672D44694C005BA1D8 /* ItemsView.swift in Sources */,
 				A3AA41602D44654F005BA1D8 /* Item.swift in Sources */,
@@ -359,7 +363,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				IPHONEOS_DEPLOYMENT_TARGET = 18;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -396,7 +400,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				IPHONEOS_DEPLOYMENT_TARGET = 18;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

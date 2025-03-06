@@ -9,13 +9,18 @@ import SwiftUI
 import SwiftData
 
 @main
-struct starvingApp: App {
+struct StarvingApp: App {
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding: Bool = false
+    
     var body: some Scene {
         WindowGroup {
-            OnBoardingView()
-                .modelContainer(for: [Item.self, Day.self])
-//            HomeView()
-//                .modelContainer(for: [Item.self, Day.self])
+            if hasCompletedOnboarding {
+                HomeView()
+                    .modelContainer(for: [Item.self, Day.self])
+            } else {
+                OnBoardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
+                    .modelContainer(for: [Item.self, Day.self])
+            }
         }
     }
 }
