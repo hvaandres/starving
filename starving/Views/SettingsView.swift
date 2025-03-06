@@ -31,7 +31,7 @@ struct SettingsView: View {
     private let feedbackEmail = "hello@aharo.dev"
     
     // Developer Info links
-    private let spaceCreatorsLink = URL(string: "https://discord.gg/5Psmx9Ew")!
+    private let spaceCreatorsLink = URL(string: "https://discord.gg/2fUzJkvVuE")!
     private let mediumLink = URL(string: "https://medium.com/@ithvaandres")!
     
     var body: some View {
@@ -102,7 +102,7 @@ struct SettingsView: View {
                             Text("Starving App")
                                 .font(.footnote)
                                 .foregroundColor(Color(.systemGray))
-                            Text("Version 1.0.0")
+                            Text("Version 1.1")
                                 .font(.caption)
                                 .foregroundColor(Color(.systemGray))
                         }
