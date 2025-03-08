@@ -11,6 +11,7 @@ import SwiftData
 struct AddItemView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var context
+    @Environment(\.colorScheme) var colorScheme
     @State private var itemTitle = ""
     
     var body: some View {
@@ -26,8 +27,8 @@ struct AddItemView: View {
                 Text("Add")
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.black)
-                    .foregroundColor(.white)
+                    .background(colorScheme == .dark ? Color.white : Color.black)
+                    .foregroundColor(colorScheme == .dark ? Color.black : Color.white)
                     .cornerRadius(10)
             }
             .disabled(itemTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
