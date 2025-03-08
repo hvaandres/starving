@@ -27,7 +27,7 @@ struct SettingsView: View {
     var body: some View {
         ZStack {
             // Solid background color (white)
-            Color.white
+            Color(.systemBackground)
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
@@ -38,7 +38,7 @@ struct SettingsView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.top)
                     .padding(.bottom, 8)
-                    .background(Color.white)
+                    .background(Color(.systemBackground))
 
                 // Content (with opaque white background)
                 ScrollView(.vertical, showsIndicators: false) {
@@ -58,7 +58,7 @@ struct SettingsView: View {
                     }
                     .padding(.horizontal)
                     .padding(.bottom, 32)
-                    .background(Color.white) //Ensure the scrollview fills the screen with color white
+                    .background(Color(.systemBackground)) //Ensure the scrollview fills the screen with color white
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
