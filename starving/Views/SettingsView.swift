@@ -5,8 +5,8 @@ struct SettingsView: View {
     @Environment(\.colorScheme) var colorScheme
 
     // MARK: - URLs
-    private let reviewUrl = URL(string: "https://apps.apple.com/us/app/starving-shopping-list/id674277117")!
-    private let shareUrl = URL(string: "https://apps.apple.com/us/app/starving-shopping-list/id674277117")!
+    private let reviewUrl = URL(string: "https://apps.apple.com/us/app/starving-shopping-list/id6742771179")!
+    private let shareUrl = URL(string: "https://apps.apple.com/us/app/starving-shopping-list/id6742771179")!
     private let githubProfile = URL(string: "https://github.com/hvaandres")!
     private let feedbackEmail = "hello@aharo.dev"
 
