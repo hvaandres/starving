@@ -12,6 +12,8 @@ struct ItemRow: View {
     let isSelected: Bool
     let action: () -> Void
     
+    @Environment(\.colorScheme) var colorScheme
+    
     var body: some View {
         HStack {
             Text(item.title)
@@ -19,10 +21,9 @@ struct ItemRow: View {
             
             Button(action: action) {
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "checkmark.circle")
-                    .foregroundStyle(isSelected ? .green : .black)
+                    .foregroundStyle(isSelected ? .green : (colorScheme == .dark ? .white : .black))
                     .imageScale(.large)
             }
         }
     }
 }
-
