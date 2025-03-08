@@ -5,15 +5,6 @@
 //  Created by Alan Haro on 1/24/25.
 //
 
-
-//
-//  TodayView.swift
-//  starving
-//
-//  Created by Alan Haro on 1/24/25.
-//
-
-
 import SwiftUI
 import SwiftData
 import UserNotifications
