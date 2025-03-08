@@ -1,11 +1,13 @@
 import SwiftUI
+import StoreKit
 
 struct SettingsView: View {
     @Environment(\.openURL) var openURL
     @Environment(\.colorScheme) var colorScheme
 
     // MARK: - URLs
-    private let reviewUrl = URL(string: "https://apps.apple.com/us/app/starving-shopping-list/id6742771179")!
+    // Changed to use regular https URLs, we'll handle the App Store opening differently
+    private let appId = "6742771179"
     private let shareUrl = URL(string: "https://apps.apple.com/us/app/starving-shopping-list/id6742771179")!
     private let githubProfile = URL(string: "https://github.com/hvaandres")!
     private let feedbackEmail = "hello@aharo.dev"
@@ -23,6 +25,7 @@ struct SettingsView: View {
     
     // MARK: - State
     @State private var showShareSheet = false
+    @State private var showStoreProductView = false
 
     var body: some View {
         ZStack {
@@ -65,6 +68,9 @@ struct SettingsView: View {
         }
         .sheet(isPresented: $showShareSheet) {
             ShareSheet(items: [shareUrl])
+        }
+        .fullScreenCover(isPresented: $showStoreProductView) {
+            StoreProductView(appId: appId)
         }
     }
     
@@ -115,7 +121,10 @@ struct SettingsView: View {
             SectionHeader(title: "App Options", icon: "gearshape")
             
             SettingsButton(icon: "star.fill", text: "Rate on App Store", backgroundColor: Color.yellow.opacity(0.2), iconColor: .yellow) {
-                openURL(reviewUrl)
+                // Using the StoreKit review request method instead
+                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+                    SKStoreReviewController.requestReview(in: windowScene)
+                }
             }
             
             SettingsButton(icon: "square.and.arrow.up", text: "Share App", backgroundColor: Color.blue.opacity(0.2), iconColor: .blue) {
@@ -194,6 +203,46 @@ struct SettingsView: View {
 }
 
 // MARK: - Supporting Views
+struct StoreProductView: UIViewControllerRepresentable {
+    let appId: String
+    @Environment(\.presentationMode) var presentationMode
+    
+    func makeUIViewController(context: Context) -> SKStoreProductViewController {
+        let controller = SKStoreProductViewController()
+        controller.delegate = context.coordinator
+        
+        let parameters = [SKStoreProductParameterITunesItemIdentifier: appId]
+        controller.loadProduct(withParameters: parameters) { success, error in
+            if !success {
+                print("Failed to load product: \(String(describing: error))")
+                // Dismiss the view if there's an error
+                DispatchQueue.main.async {
+                    self.presentationMode.wrappedValue.dismiss()
+                }
+            }
+        }
+        return controller
+    }
+    
+    func updateUIViewController(_ uiViewController: SKStoreProductViewController, context: Context) {}
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+    
+    class Coordinator: NSObject, SKStoreProductViewControllerDelegate {
+        let parent: StoreProductView
+        
+        init(_ parent: StoreProductView) {
+            self.parent = parent
+        }
+        
+        func productViewControllerDidFinish(_ viewController: SKStoreProductViewController) {
+            parent.presentationMode.wrappedValue.dismiss()
+        }
+    }
+}
+
 struct SettingsButton: View {
     let icon: String
     let text: String
