@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A33FAB2B2D97469D002E508B /* ToolTipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A33FAB2A2D97469D002E508B /* ToolTipView.swift */; };
 		A3A5CE692D48A259004FCA74 /* OnBoardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3A5CE682D48A258004FCA74 /* OnBoardingView.swift */; };
 		A3A5CE6C2D48A30D004FCA74 /* SplineRuntime in Frameworks */ = {isa = PBXBuildFile; productRef = A3A5CE6B2D48A30D004FCA74 /* SplineRuntime */; };
 		A3AA41512D4464B0005BA1D8 /* starvingApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3AA41502D4464B0005BA1D8 /* starvingApp.swift */; };
@@ -27,6 +28,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		A33FAB2A2D97469D002E508B /* ToolTipView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolTipView.swift; sourceTree = "<group>"; };
 		A3A5CE682D48A258004FCA74 /* OnBoardingView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OnBoardingView.swift; sourceTree = "<group>"; };
 		A3AA414D2D4464B0005BA1D8 /* starving.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = starving.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A3AA41502D4464B0005BA1D8 /* starvingApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = starvingApp.swift; sourceTree = "<group>"; };
@@ -115,6 +117,7 @@
 				A3AA41682D446965005BA1D8 /* RemindersView.swift */,
 				A3AA416A2D446A05005BA1D8 /* SettingsView.swift */,
 				A3B01BAC2D489253005FBD51 /* AddItemView.swift */,
+				A33FAB2A2D97469D002E508B /* ToolTipView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -217,6 +220,7 @@
 				A3AA41602D44654F005BA1D8 /* Item.swift in Sources */,
 				A3AA41622D44663B005BA1D8 /* Day.swift in Sources */,
 				A3CD06142D48BC1B0009FAD6 /* HideBackButtonModifier.swift in Sources */,
+				A33FAB2B2D97469D002E508B /* ToolTipView.swift in Sources */,
 				A3AA41652D446938005BA1D8 /* TodayView.swift in Sources */,
 				A3AA41512D4464B0005BA1D8 /* starvingApp.swift in Sources */,
 			);

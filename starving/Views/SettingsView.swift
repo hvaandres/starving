@@ -18,7 +18,7 @@ struct SettingsView: View {
 
     // MARK: - Constants
     private let appName = "Starving App"
-    private let appVersion = "Version 1.2"
+    private let appVersion = "Version 1.3.0"
     private let developerName = "Andres Haro"
     private let developerBio = "Software engineer passionate about building innovative apps and teaching others."
     private let feedbackSubject = "Feedback for Starving app!"
