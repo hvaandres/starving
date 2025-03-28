@@ -20,6 +20,7 @@
 		A3AA41692D446965005BA1D8 /* RemindersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3AA41682D446965005BA1D8 /* RemindersView.swift */; };
 		A3AA416B2D446A05005BA1D8 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3AA416A2D446A05005BA1D8 /* SettingsView.swift */; };
 		A3B01BAD2D489253005FBD51 /* AddItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B01BAC2D489253005FBD51 /* AddItemView.swift */; };
+		A3BAEB872D7EA7DF002A7231 /* ToolTipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3BAEB862D7EA7DF002A7231 /* ToolTipView.swift */; };
 		A3C18C032D795D33008C9346 /* StyleModifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3C18C022D795D33008C9346 /* StyleModifiers.swift */; };
 		A3C595BE2D4967B700E77EF9 /* ItemRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3C595BD2D4967B700E77EF9 /* ItemRow.swift */; };
 		A3C8B3072D494EDF006D8D07 /* Tab.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3C8B3062D494EDF006D8D07 /* Tab.swift */; };
@@ -40,6 +41,7 @@
 		A3AA41682D446965005BA1D8 /* RemindersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemindersView.swift; sourceTree = "<group>"; };
 		A3AA416A2D446A05005BA1D8 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A3B01BAC2D489253005FBD51 /* AddItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddItemView.swift; sourceTree = "<group>"; };
+		A3BAEB862D7EA7DF002A7231 /* ToolTipView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolTipView.swift; sourceTree = "<group>"; };
 		A3C18C022D795D33008C9346 /* StyleModifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StyleModifiers.swift; sourceTree = "<group>"; };
 		A3C595BD2D4967B700E77EF9 /* ItemRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemRow.swift; sourceTree = "<group>"; };
 		A3C8B3062D494EDF006D8D07 /* Tab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tab.swift; sourceTree = "<group>"; };
@@ -115,6 +117,7 @@
 				A3AA41682D446965005BA1D8 /* RemindersView.swift */,
 				A3AA416A2D446A05005BA1D8 /* SettingsView.swift */,
 				A3B01BAC2D489253005FBD51 /* AddItemView.swift */,
+				A3BAEB862D7EA7DF002A7231 /* ToolTipView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -217,6 +220,7 @@
 				A3AA41602D44654F005BA1D8 /* Item.swift in Sources */,
 				A3AA41622D44663B005BA1D8 /* Day.swift in Sources */,
 				A3CD06142D48BC1B0009FAD6 /* HideBackButtonModifier.swift in Sources */,
+				A3BAEB872D7EA7DF002A7231 /* ToolTipView.swift in Sources */,
 				A3AA41652D446938005BA1D8 /* TodayView.swift in Sources */,
 				A3AA41512D4464B0005BA1D8 /* starvingApp.swift in Sources */,
 			);

@@ -7,7 +7,10 @@ struct OnBoardingView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 20) {
-                OnBoard3DView()
+                // Replace SplineView with AppIcon
+                Image("AppIcon")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
                     .frame(height: 500)
                     .scaledToFill()
                 
@@ -44,22 +47,3 @@ struct OnBoardingView: View {
         }
     }
 }
-
-struct OnBoard3DView: View {
-    private let sceneURL: URL
-    init(urlString: String = "https://build.spline.design/5Wwe2cmsTpWNKQ4J9Fph/scene.splineswift") {
-        guard let url = URL(string: urlString) else {
-            // Fallback to local resource if URL is invalid
-            self.sceneURL = Bundle.main.url(forResource: "scene", withExtension: "splineswift")!
-            return
-        }
-        self.sceneURL = url
-    }
-    
-    var body: some View {
-        SplineView(sceneFileURL: sceneURL)
-            .ignoresSafeArea()
-    }
-}
-
-
