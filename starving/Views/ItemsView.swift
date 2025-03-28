@@ -93,31 +93,28 @@ struct ItemsView: View {
     
     // MARK: - View
     var body: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 20) {
             header
+            messageView
             
             if showQuickAddBar {
                 // Quick add bar for easy item entry
                 QuickAddItemBar() {
                     refreshTrigger.toggle()
                 }
-                .padding(.top, 5)
             }
             
             if items.isEmpty {
                 emptyStateView
             } else {
                 itemsList
+                
+                if !showQuickAddBar {
+                    addButton
+                }
             }
-            
-            Spacer()
-            
-            if !showQuickAddBar {
-                addButton
-            }
-            
-            Spacer()
         }
+        .padding()
         .sheet(isPresented: $showAddView) {
             AddItemView()
                 .presentationDetents([.fraction(0.3)])
@@ -132,57 +129,58 @@ struct ItemsView: View {
         }
     }
     
+    // MARK: - View Components
     private var header: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("My Groceries")
-                .font(.largeTitle)
-                .bold()
-                .frame(maxWidth: .infinity, alignment: .leading)
-            
-            Text("Never forget your weekly needs! Add groceries and select items to move them to the Today's tab.")
-                .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .padding(.horizontal)
+        Text("My groceries")
+            .font(.largeTitle)
+            .bold()
+            .frame(maxWidth: .infinity, alignment: .leading)
+    }
+    
+    private var messageView: some View {
+        Text("Never forget your weekly needs! Add groceries and select items to move them to the Today's tab.")
+            .frame(maxWidth: .infinity, alignment: .leading)
     }
     
     private var emptyStateView: some View {
         VStack(spacing: 20) {
+            Spacer()
+            
             Image("items")
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(maxWidth: 230)
-            
-            Text("Your grocery list is empty")
-                .font(.title2)
-                .bold()
-            
-            Text("Start by adding groceries you need for the week. Add items easily with the quick add bar above or the + button below.")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .padding()
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color(.systemBackground))
-                        .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
-                )
-                .padding(.horizontal)
                 .frame(maxWidth: 300)
+            
+            ToolTipView(text: "Start by adding groceries you need for the week. Add items easily with the quick add bar above or the + button below.")
+            
+            addButton
+            
+            Spacer()
         }
-        .padding(.top, 30)
     }
     
     private var itemsList: some View {
-        List(items) { item in
-            ItemRow(item: item, isSelected: isItemSelected(item)) {
-                toggleItem(item)
+        List {
+            ForEach(items) { item in
+                ItemRow(item: item, isSelected: isItemSelected(item)) {
+                    toggleItem(item)
+                }
+                .swipeActions(edge: .leading) {
+                    Button(role: .destructive) {
+                        deleteItem(item)
+                    } label: {
+                        Label("Delete", systemImage: "trash")
+                    }
+                }
             }
         }
         .listStyle(.plain)
     }
     
     private var addButton: some View {
-        Button(action: { showAddView.toggle() }) {
+        Button {
+            showAddView.toggle()
+        } label: {
             Text("Add New Item")
                 .font(.headline)
                 .primaryButtonStyle()
@@ -190,6 +188,7 @@ struct ItemsView: View {
         .padding(.horizontal)
     }
     
+    // MARK: - Helper Methods
     private func isItemSelected(_ item: Item) -> Bool {
         getToday()?.items.contains(where: { $0.id == item.id }) ?? false
     }
@@ -214,6 +213,11 @@ struct ItemsView: View {
         } catch {
             handleError(error)
         }
+    }
+    
+    private func deleteItem(_ item: Item) {
+        context.delete(item)
+        try? context.save()
     }
     
     private func getToday() -> Day? {
