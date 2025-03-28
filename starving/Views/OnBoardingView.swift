@@ -3,6 +3,7 @@ import SplineRuntime
 
 struct OnBoardingView: View {
     @Binding var hasCompletedOnboarding: Bool
+    @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
         NavigationStack {
@@ -34,10 +35,9 @@ struct OnBoardingView: View {
                     Text("Get Started")
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color.black)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                }
+                        .background(colorScheme == .dark ? Color.white : Color.black)
+                        .foregroundColor(colorScheme == .dark ? Color.black : Color.white)
+                        .cornerRadius(10)                }
                 .padding(.horizontal, 20)
                 .padding(.bottom, 30)
             }
