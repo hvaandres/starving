@@ -7,12 +7,12 @@ struct OnBoardingView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 20) {
-                // Replace SplineView with AppIcon
-                Image("AppIcon")
+                Image("starving-black")
                     .resizable()
-                    .aspectRatio(contentMode: .fit)
+                    .aspectRatio(contentMode: .fill)
                     .frame(height: 500)
-                    .scaledToFill()
+                    .clipped()
+                    .ignoresSafeArea()
                 
                 VStack(spacing: 12) {
                     Text("Welcome to Starving!")
@@ -29,7 +29,6 @@ struct OnBoardingView: View {
                 Spacer()
                 
                 Button {
-                    // Set the flag to true when the user taps "Get Started"
                     hasCompletedOnboarding = true
                 } label: {
                     Text("Get Started")
@@ -46,4 +45,9 @@ struct OnBoardingView: View {
             .navigationBarHidden(true)
         }
     }
+}
+
+#Preview {
+    @State var hasCompletedOnboarding = false
+    return OnBoardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
 }
