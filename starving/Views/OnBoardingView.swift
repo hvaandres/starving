@@ -15,7 +15,7 @@ struct OnBoardingView: View {
                 Spacer(minLength: 20) // Fixed space between text and button
                 
                 GetStartedButton(action: completeOnboarding)
-                    .padding(.bottom, 100) // Adds a little space at the bottom
+                    .padding(.bottom, 150) // Adds a little space at the bottom
             }
             .frame(maxHeight: .infinity) // Makes ContentView and button stretch to fill space
         }
