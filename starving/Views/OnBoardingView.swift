@@ -3,47 +3,67 @@ import SplineRuntime
 
 struct OnBoardingView: View {
     @Binding var hasCompletedOnboarding: Bool
-    @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 20) {
-                Image("starving-black")
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(height: 500)
-                    .clipped()
-                    .ignoresSafeArea()
+        VStack {
+            LogoView()
+                .frame(height: UIScreen.main.bounds.height * 0.5)
+            
+            VStack {
+                ContentView()
                 
-                VStack(spacing: 12) {
-                    Text("Welcome to Starving!")
-                        .font(.title.bold())
-                        .foregroundColor(.primary)
-                    
-                    Text("Stay organized and keep your family happy! Create, manage, and check off grocery lists with ease—simplifying your shopping in one smart app.")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                        .multilineTextAlignment(.center)
-                }
-                .padding(.horizontal)
+                Spacer(minLength: 20) // Fixed space between text and button
                 
-                Spacer()
-                
-                Button {
-                    hasCompletedOnboarding = true
-                } label: {
-                    Text("Get Started")
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(colorScheme == .dark ? Color.white : Color.black)
-                        .foregroundColor(colorScheme == .dark ? Color.black : Color.white)
-                        .cornerRadius(10)                }
-                .padding(.horizontal, 20)
-                .padding(.bottom, 30)
+                GetStartedButton(action: completeOnboarding)
+                    .padding(.bottom, 100) // Adds a little space at the bottom
             }
-            .navigationBarBackButtonHidden(true)
-            .navigationBarHidden(true)
+            .frame(maxHeight: .infinity) // Makes ContentView and button stretch to fill space
         }
+        .ignoresSafeArea()
+        .navigationBarHidden(true)
+    }
+    
+    private func completeOnboarding() {
+        hasCompletedOnboarding = true
+    }
+}
+
+struct LogoView: View {
+    var body: some View {
+        Image("starving-black")
+            .resizable()
+            .scaledToFit() // Ensures image is fully visible without distortion
+            .ignoresSafeArea(edges: .top) // Removes white space at the top
+    }
+}
+
+struct ContentView: View {
+    var body: some View {
+        VStack(spacing: 20) {
+            Spacer()
+            Text("Welcome to Starving!")
+                .font(.title.bold())
+                .foregroundColor(.primary)
+    
+            Text("Stay organized and keep your family happy! Create, manage, and check off grocery lists with ease—simplifying your shopping in one smart app.")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+            Spacer() // Ensures the text is more centered vertically
+        }
+        .padding(.horizontal, 40)
+    }
+}
+
+struct GetStartedButton: View {
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            Text("Get Started")
+            
+        }
+        .primaryButtonStyle() // Applies custom button style
     }
 }
 
