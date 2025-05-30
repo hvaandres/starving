@@ -9,7 +9,6 @@ import SwiftUI
 
 struct PrimaryButtonStyle: ViewModifier {
     func body(content: Content) -> some View {
-        
         content
             .frame(maxWidth: .infinity)
             .padding(.vertical, 15) // Standardized vertical padding
@@ -17,6 +16,7 @@ struct PrimaryButtonStyle: ViewModifier {
             .background(Color(.label))
             .foregroundColor(Color(.systemBackground))
             .cornerRadius(10)
+            .contentShape(Rectangle()) // ADD THIS LINE - makes entire area clickable
             .padding(.horizontal, 20) // Consistent outer horizontal padding
     }
 }
@@ -26,4 +26,3 @@ extension View {
         self.modifier(PrimaryButtonStyle())
     }
 }
-
