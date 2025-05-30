@@ -61,11 +61,13 @@ struct GetStartedButton: View {
     var body: some View {
         Button(action: action) {
             Text("Get Started")
-            
+                .frame(maxWidth: .infinity, minHeight: 20) // Makes the button content fill the area
         }
-        .primaryButtonStyle() // Applies custom button style
+        .primaryButtonStyle()
     }
 }
+
+
 
 #Preview {
     @State var hasCompletedOnboarding = false
