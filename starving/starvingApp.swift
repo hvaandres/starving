@@ -7,19 +7,37 @@
 
 import SwiftUI
 import SwiftData
+import FirebaseCore
 
 @main
 struct StarvingApp: App {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding: Bool = false
     
+    init() {
+        FirebaseApp.configure()
+    }
+    
     var body: some Scene {
         WindowGroup {
-            if hasCompletedOnboarding {
-                HomeView()
-                    .modelContainer(for: [Item.self, Day.self])
-            } else {
+            ContentView(hasCompletedOnboarding: $hasCompletedOnboarding)
+                .modelContainer(for: [Item.self, Day.self])
+                .withAuthentication()
+        }
+    }
+}
+
+struct ContentView: View {
+    @Binding var hasCompletedOnboarding: Bool
+    @EnvironmentObject var authManager: AuthenticationManager
+    
+    var body: some View {
+        Group {
+            if !hasCompletedOnboarding {
                 OnBoardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
-                    .modelContainer(for: [Item.self, Day.self])
+            } else if !authManager.isSignedIn {
+                LoginView(hasCompletedOnboarding: $hasCompletedOnboarding)
+            } else {
+                HomeView()
             }
         }
     }
