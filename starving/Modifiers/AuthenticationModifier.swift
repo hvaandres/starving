@@ -46,16 +46,36 @@ class AuthenticationManager: ObservableObject {
         authorizationController.performRequests()
     }
     
-    // MARK: - Sign In with Google
-    func signInWithGoogle() {
-        guard let clientID = FirebaseApp.app()?.options.clientID else {
-            self.errorMessage = "No client ID found"
+    func handleAppleSignInResult(authorization: ASAuthorization) {
+        guard let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential else {
+            self.errorMessage = "Invalid Apple ID credential"
             return
         }
         
-        let config = GIDConfiguration(clientID: clientID)
-        GIDSignIn.sharedInstance.configuration = config
+        guard let appleIDToken = appleIDCredential.identityToken,
+              let idTokenString = String(data: appleIDToken, encoding: .utf8) else {
+            self.errorMessage = "Unable to fetch identity token"
+            return
+        }
         
+        let nonce = randomNonceString()
+        let credential = OAuthProvider.credential(withProviderID: "apple.com", idToken: idTokenString, rawNonce: nonce)
+        
+        isLoading = true
+        errorMessage = nil
+        
+        Auth.auth().signIn(with: credential) { [weak self] authResult, error in
+            DispatchQueue.main.async {
+                self?.isLoading = false
+                if let error = error {
+                    self?.errorMessage = error.localizedDescription
+                }
+            }
+        }
+    }
+    
+    // MARK: - Sign In with Google
+    func signInWithGoogle() {
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
               let rootViewController = windowScene.windows.first?.rootViewController else {
             self.errorMessage = "No root view controller found"
@@ -181,30 +201,6 @@ class AppleSignInDelegate: NSObject, ASAuthorizationControllerDelegate, ASAuthor
     
     private func getCurrentNonce() -> String? {
         return currentNonce
-    }
-    
-    private func randomNonceString(length: Int = 32) -> String {
-        precondition(length > 0)
-        var randomBytes = [UInt8](repeating: 0, count: length)
-        let errorCode = SecRandomCopyBytes(kSecRandomDefault, randomBytes.count, &randomBytes)
-        if errorCode != errSecSuccess {
-            fatalError("Unable to generate nonce. SecRandomCopyBytes failed with OSStatus \(errorCode)")
-        }
-        
-        let charset: [Character] = Array("0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._")
-        let nonce = randomBytes.map { byte in
-            charset[Int(byte) % charset.count]
-        }
-        return String(nonce)
-    }
-    
-    private func sha256(_ input: String) -> String {
-        let inputData = Data(input.utf8)
-        let hashedData = SHA256.hash(data: inputData)
-        let hashString = hashedData.compactMap {
-            String(format: "%02x", $0)
-        }.joined()
-        return hashString
     }
 }
 
