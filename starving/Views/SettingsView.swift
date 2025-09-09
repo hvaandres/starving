@@ -4,6 +4,7 @@ import StoreKit
 struct SettingsView: View {
     @Environment(\.openURL) var openURL
     @Environment(\.colorScheme) var colorScheme
+    @EnvironmentObject var authManager: AuthenticationManager
 
     // MARK: - URLs
     // Changed to use regular https URLs, we'll handle the App Store opening differently
@@ -133,6 +134,10 @@ struct SettingsView: View {
             
             SettingsButton(icon: "envelope.fill", text: "Send Feedback", backgroundColor: Color.green.opacity(0.2), iconColor: .green) {
                 submitFeedback()
+            }
+            
+            SettingsButton(icon: "rectangle.portrait.and.arrow.right", text: "Sign Out", backgroundColor: Color.red.opacity(0.2), iconColor: .red) {
+                authManager.signOut()
             }
         }
         .padding(20)
