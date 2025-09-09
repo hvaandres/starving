@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 import FirebaseCore
+import GoogleSignIn
 
 @main
 struct StarvingApp: App {
@@ -15,6 +16,13 @@ struct StarvingApp: App {
     
     init() {
         FirebaseApp.configure()
+        
+        // Configure Google Sign-In
+        if let path = Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist"),
+           let plist = NSDictionary(contentsOfFile: path),
+           let clientId = plist["CLIENT_ID"] as? String {
+            GIDSignIn.sharedInstance.configuration = GIDConfiguration(clientID: clientId)
+        }
     }
     
     var body: some Scene {
@@ -39,6 +47,9 @@ struct ContentView: View {
             } else {
                 HomeView()
             }
+        }
+        .onOpenURL { url in
+            GIDSignIn.sharedInstance.handle(url)
         }
     }
 }

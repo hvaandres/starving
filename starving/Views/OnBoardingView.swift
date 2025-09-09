@@ -1,5 +1,4 @@
 import SwiftUI
-import SplineRuntime
 
 struct OnBoardingView: View {
     @Binding var hasCompletedOnboarding: Bool
@@ -10,7 +9,7 @@ struct OnBoardingView: View {
                 .frame(height: UIScreen.main.bounds.height * 0.5)
             
             VStack {
-                ContentView()
+                WelcomeContentView()
                 
                 Spacer(minLength: 20) // Fixed space between text and button
                 
@@ -37,7 +36,7 @@ struct LogoView: View {
     }
 }
 
-struct ContentView: View {
+struct WelcomeContentView: View {
     var body: some View {
         VStack(spacing: 20) {
             Spacer()

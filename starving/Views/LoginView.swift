@@ -47,8 +47,13 @@ struct LoginView: View {
                         onRequest: { request in
                             request.requestedScopes = [.fullName, .email]
                         },
-                        onCompletion: { _ in
-                            authManager.signInWithApple()
+                        onCompletion: { result in
+                            switch result {
+                            case .success(let authorization):
+                                authManager.handleAppleSignInResult(authorization: authorization)
+                            case .failure(let error):
+                                authManager.errorMessage = error.localizedDescription
+                            }
                         }
                     )
                     .signInWithAppleButtonStyle(.black)
