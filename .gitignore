@@ -1,3 +1,71 @@
+# Xcode
 *.xcuserstate
+*.xcuserdatad/
+xcuserdata/
 .DS_Store
+*.moved-aside
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata
+profile
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+DerivedData/
+*.xccheckout
+*.xcscmblueprint
+
+# Firebase & Google Services
+GoogleService-Info.plist
+google-services.json
+.firebaserc
+firebase-debug.log
+firebase-debug.*.log
+
+# API Keys & Secrets
+.env
+.env.local
+.env.*.local
+secrets.json
+config/secrets/
+*.key
+*.p12
+*.mobileprovision
+*.certSigningRequest
+
+# CocoaPods
+Pods/
+Podfile.lock
+
+# Carthage
+Carthage/Build
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Package.resolved
+
+# fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+fastlane/README.md
+
+# Code coverage
+*.gcda
+*.gcno
+
+# Other
+.swiftlint.yml
+*.swp
+*~.nib
+*.orig
 
