@@ -165,11 +165,15 @@ struct TabBarButton: View {
     let isSelected: Bool
     let action: () -> Void
     
+    @State private var isPressed = false
+    
     var body: some View {
         Button(action: action) {
             Image(systemName: tab.iconName)
                 .font(.system(size: 22, weight: .medium))
                 .foregroundColor(isSelected ? tab.color : .white.opacity(0.7))
+                .scaleEffect(isPressed ? 1.2 : 1.0)
+                .animation(.spring(response: 0.25, dampingFraction: 0.6), value: isPressed)
                 .frame(width: 48, height: 48)
                 .background(
                     ZStack {
@@ -193,6 +197,17 @@ struct TabBarButton: View {
                 )
         }
         .buttonStyle(PlainButtonStyle())
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in
+                    if !isPressed {
+                        isPressed = true
+                    }
+                }
+                .onEnded { _ in
+                    isPressed = false
+                }
+        )
     }
 }
 
