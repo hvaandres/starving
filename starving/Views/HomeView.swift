@@ -99,51 +99,148 @@ struct FloatingTabBar: View {
     
     let tabs: [Tab] = [.today, .items, .reminders, .settings]
     
+    @State private var lensOffset: CGFloat = 0
+    @State private var isDraggingLens = false
+    @GestureState private var dragState: CGFloat = 0
+    
     var body: some View {
-        HStack(spacing: 24) {
-            ForEach(tabs, id: \.self) { tab in
-                TabBarButton(
-                    tab: tab,
-                    isSelected: selectedTab == tab,
-                    isHovered: hoveredTab == tab,
-                    action: {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                            selectedTab = tab
-                        }
-                        let generator = UIImpactFeedbackGenerator(style: .light)
-                        generator.impactOccurred()
-                    },
-                    onHover: { hovering in
-                        hoveredTab = hovering ? tab : nil
+        GeometryReader { geometry in
+            ZStack {
+                // Tab bar background
+                HStack(spacing: 24) {
+                    ForEach(Array(tabs.enumerated()), id: \.element) { index, tab in
+                        TabBarButton(
+                            tab: tab,
+                            isSelected: selectedTab == tab,
+                            isHovered: hoveredTab == tab,
+                            isMagnified: isMagnified(index: index),
+                            action: {
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                    selectedTab = tab
+                                    lensOffset = CGFloat(index) * 46 // Position lens at selected tab
+                                }
+                                let generator = UIImpactFeedbackGenerator(style: .light)
+                                generator.impactOccurred()
+                            },
+                            onHover: { hovering in
+                                hoveredTab = hovering ? tab : nil
+                            }
+                        )
                     }
-                )
-            }
-        }
-        .padding(.vertical, 10)
-        .padding(.horizontal, 16)
-        .background(
-            Capsule()
-                .fill(.ultraThinMaterial)
-                .opacity(0.95)
-                .shadow(color: Color.black.opacity(0.15), radius: 20, x: 0, y: 10)
-                .overlay(
+                }
+                .padding(.vertical, 10)
+                .padding(.horizontal, 16)
+                .background(
                     Capsule()
-                        .strokeBorder(
-                            LinearGradient(
-                                colors: [
-                                    Color.white.opacity(0.3),
-                                    Color.white.opacity(0.1)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 1
+                        .fill(.ultraThinMaterial)
+                        .opacity(0.95)
+                        .shadow(color: Color.black.opacity(0.15), radius: 20, x: 0, y: 10)
+                        .overlay(
+                            Capsule()
+                                .strokeBorder(
+                                    LinearGradient(
+                                        colors: [
+                                            Color.white.opacity(0.3),
+                                            Color.white.opacity(0.1)
+                                        ],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    ),
+                                    lineWidth: 1
+                                )
                         )
                 )
-        )
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
-        .padding(.leading, 20)
-        .padding(.bottom, 20)
+                .overlay(
+                    // Draggable oval magnifying lens
+                    MagnifyingLens()
+                        .offset(x: lensOffset + dragState)
+                        .gesture(
+                            DragGesture()
+                                .updating($dragState) { value, state, _ in
+                                    state = value.translation.width
+                                }
+                                .onChanged { _ in
+                                    isDraggingLens = true
+                                }
+                                .onEnded { value in
+                                    isDraggingLens = false
+                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                        // Snap to nearest tab
+                                        let newOffset = lensOffset + value.translation.width
+                                        let tabWidth: CGFloat = 46
+                                        let snappedIndex = Int(round(newOffset / tabWidth))
+                                        let clampedIndex = max(0, min(tabs.count - 1, snappedIndex))
+                                        lensOffset = CGFloat(clampedIndex) * tabWidth
+                                        selectedTab = tabs[clampedIndex]
+                                    }
+                                }
+                        )
+                        .allowsHitTesting(true)
+                )
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+            .padding(.leading, 20)
+            .padding(.bottom, 20)
+        }
+    }
+    
+    private func isMagnified(index: Int) -> Bool {
+        let currentLensPosition = lensOffset + dragState
+        let tabWidth: CGFloat = 46
+        let tabCenter = CGFloat(index) * tabWidth
+        let distance = abs(currentLensPosition - tabCenter)
+        return distance < tabWidth / 2
+    }
+}
+
+// MARK: - Magnifying Lens
+struct MagnifyingLens: View {
+    var body: some View {
+        Ellipse()
+            .fill(
+                LinearGradient(
+                    colors: [
+                        Color.white.opacity(0.3),
+                        Color.white.opacity(0.15),
+                        Color.clear
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            )
+            .frame(width: 50, height: 60)
+            .overlay(
+                Ellipse()
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [
+                                Color.white.opacity(0.6),
+                                Color.white.opacity(0.3)
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        ),
+                        lineWidth: 2
+                    )
+            )
+            .overlay(
+                // Crystal clear inner reflection
+                Ellipse()
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                Color.white.opacity(0.4),
+                                Color.clear
+                            ],
+                            center: .init(x: 0.3, y: 0.3),
+                            startRadius: 5,
+                            endRadius: 25
+                        )
+                    )
+                    .padding(4)
+            )
+            .shadow(color: Color.white.opacity(0.5), radius: 8, x: 0, y: 0)
+            .shadow(color: Color.black.opacity(0.2), radius: 12, x: 0, y: 6)
     }
 }
 
@@ -152,6 +249,7 @@ struct TabBarButton: View {
     let tab: Tab
     let isSelected: Bool
     let isHovered: Bool
+    let isMagnified: Bool
     let action: () -> Void
     let onHover: (Bool) -> Void
     
@@ -162,7 +260,8 @@ struct TabBarButton: View {
             Image(systemName: tab.iconName)
                 .font(.system(size: 22, weight: isSelected ? .semibold : .regular))
                 .foregroundColor(isSelected ? tab.color : .white.opacity(0.6))
-                .scaleEffect(isPressed ? 0.85 : (isHovered ? 1.15 : 1.0))
+                .scaleEffect(isPressed ? 0.85 : (isMagnified ? 1.5 : (isHovered ? 1.15 : 1.0)))
+                .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isMagnified)
                 .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isHovered)
                 .animation(.spring(response: 0.2, dampingFraction: 0.6), value: isPressed)
         }
