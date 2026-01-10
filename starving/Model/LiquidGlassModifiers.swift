@@ -7,46 +7,160 @@
 
 import SwiftUI
 
-// MARK: - Glass Card Modifier
+// MARK: - Advanced Glass Card Modifier with Layered Translucency
 struct GlassCardModifier: ViewModifier {
     var cornerRadius: CGFloat = 16
     var padding: CGFloat = 16
+    @State private var shimmerPhase: CGFloat = 0
     
     func body(content: Content) -> some View {
         content
             .padding(padding)
             .background(
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .fill(.ultraThinMaterial)
-                    .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: cornerRadius)
-                            .stroke(Color.white.opacity(0.2), lineWidth: 1)
-                    )
+                ZStack {
+                    // Layer 1: Base ultra-thin material (60% opacity)
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .fill(.ultraThinMaterial)
+                        .opacity(0.6)
+                    
+                    // Layer 2: Thin material overlay (30% opacity)
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .fill(.thinMaterial)
+                        .opacity(0.3)
+                    
+                    // Layer 3: Color tint gradient for depth
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(0.15),
+                                    Color.white.opacity(0.05),
+                                    Color.clear
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                    
+                    // Layer 4: Shimmer effect for "liquid" feel
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    Color.clear,
+                                    Color.white.opacity(0.1),
+                                    Color.clear
+                                ],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .offset(x: shimmerPhase)
+                        .mask(RoundedRectangle(cornerRadius: cornerRadius))
+                }
+                // Multi-layer shadows for depth
+                .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
+                .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 4)
+                .shadow(color: Color.black.opacity(0.1), radius: 20, x: 0, y: 10)
+                // Layered borders
+                .overlay(
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .strokeBorder(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(0.3),
+                                    Color.white.opacity(0.1),
+                                    Color.clear
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
+                )
             )
+            .onAppear {
+                // Continuous shimmer animation
+                withAnimation(
+                    .linear(duration: 3)
+                    .repeatForever(autoreverses: false)
+                ) {
+                    shimmerPhase = 400
+                }
+            }
     }
 }
 
-// MARK: - Glass Button Style
+// MARK: - Glass Button Style with Lensing Effect
 struct GlassButtonStyle: ButtonStyle {
-    var cornerRadius: CGFloat = 12
+    var useCapsule: Bool = true
+    @State private var lensingIntensity: CGFloat = 0
     
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 15)
+            .padding(.vertical, 14)
             .padding(.horizontal, 20)
             .background(
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .fill(.thinMaterial)
-                    .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: cornerRadius)
-                            .stroke(Color.white.opacity(0.3), lineWidth: 1.5)
-                    )
+                Group {
+                    if useCapsule {
+                        Capsule()
+                            .fill(.ultraThinMaterial)
+                            .opacity(0.8)
+                            .overlay(
+                                // Lensing effect - radial gradient
+                                Capsule()
+                                    .fill(
+                                        RadialGradient(
+                                            colors: [
+                                                Color.white.opacity(0.3 + lensingIntensity),
+                                                Color.white.opacity(0.1),
+                                                Color.clear
+                                            ],
+                                            center: .center,
+                                            startRadius: 0,
+                                            endRadius: 100
+                                        )
+                                    )
+                            )
+                            .overlay(
+                                Capsule()
+                                    .strokeBorder(
+                                        LinearGradient(
+                                            colors: [
+                                                Color.white.opacity(0.4),
+                                                Color.white.opacity(0.2)
+                                            ],
+                                            startPoint: .top,
+                                            endPoint: .bottom
+                                        ),
+                                        lineWidth: 1
+                                    )
+                            )
+                            .shadow(color: Color.black.opacity(0.08), radius: 4, x: 0, y: 2)
+                            .shadow(color: Color.black.opacity(0.12), radius: 12, x: 0, y: 6)
+                    } else {
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(.thinMaterial)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color.white.opacity(0.3), lineWidth: 1.5)
+                            )
+                            .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
+                    }
+                }
             )
-            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
-            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: configuration.isPressed)
+            .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
+            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: configuration.isPressed)
+            .onAppear {
+                // Subtle pulsing lensing effect
+                withAnimation(
+                    .easeInOut(duration: 2)
+                    .repeatForever(autoreverses: true)
+                ) {
+                    lensingIntensity = 0.1
+                }
+            }
     }
 }
 
