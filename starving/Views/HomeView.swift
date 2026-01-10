@@ -140,7 +140,7 @@ struct FloatingTabBar: View {
                 .shadow(color: Color.black.opacity(0.15), radius: 15, x: 0, y: 8)
             
             // Tab buttons
-            HStack(spacing: 12) {
+            HStack(spacing: 10) {
                 ForEach(tabs, id: \.self) { tab in
                     TabBarButton(
                         tab: tab,
@@ -159,8 +159,8 @@ struct FloatingTabBar: View {
                     )
                 }
             }
-            .padding(.vertical, 8)
-            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .padding(.horizontal, 10)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
         .padding(.leading, 20)
@@ -188,17 +188,17 @@ struct TabBarButton: View {
                         .fill(
                             RadialGradient(
                                 colors: [
-                                    tab.color.opacity(0.35),
+                                    tab.color.opacity(0.3),
                                     tab.color.opacity(0.15),
                                     Color.clear
                                 ],
                                 center: .center,
                                 startRadius: 0,
-                                endRadius: 15
+                                endRadius: 12
                             )
                         )
-                        .frame(width: 32, height: 32)
-                        .blur(radius: 4)
+                        .frame(width: 26, height: 26)
+                        .blur(radius: 3)
                         .scaleEffect(glowPulse)
                 }
                 
@@ -206,11 +206,11 @@ struct TabBarButton: View {
                 if isSelected {
                     Circle()
                         .fill(.ultraThinMaterial)
-                        .frame(width: 28, height: 28)
+                        .frame(width: 24, height: 24)
                         .overlay(
                             Circle()
                                 .strokeBorder(
-                                    tab.color.opacity(0.4),
+                                    tab.color.opacity(0.35),
                                     lineWidth: 1
                                 )
                         )
@@ -220,7 +220,7 @@ struct TabBarButton: View {
                                 .fill(
                                     LinearGradient(
                                         colors: [
-                                            Color.white.opacity(0.2),
+                                            Color.white.opacity(0.15),
                                             Color.clear
                                         ],
                                         startPoint: .top,
@@ -229,7 +229,7 @@ struct TabBarButton: View {
                                 )
                                 .padding(1)
                         )
-                        .shadow(color: tab.color.opacity(0.25), radius: 6, x: 0, y: 2)
+                        .shadow(color: tab.color.opacity(0.2), radius: 4, x: 0, y: 1)
                 }
                 
                 // Subtle glow for hover
@@ -238,27 +238,27 @@ struct TabBarButton: View {
                         .fill(
                             RadialGradient(
                                 colors: [
-                                    tab.color.opacity(0.2),
-                                    tab.color.opacity(0.1),
+                                    tab.color.opacity(0.18),
+                                    tab.color.opacity(0.08),
                                     Color.clear
                                 ],
                                 center: .center,
                                 startRadius: 0,
-                                endRadius: 14
+                                endRadius: 12
                             )
                         )
-                        .frame(width: 28, height: 28)
-                        .blur(radius: 3)
+                        .frame(width: 24, height: 24)
+                        .blur(radius: 2)
                 }
                 
                 // Icon
                 Image(systemName: tab.iconName)
-                    .font(.system(size: 18, weight: isSelected ? .semibold : .regular))
+                    .font(.system(size: 16, weight: isSelected ? .semibold : .regular))
                     .foregroundColor(isSelected ? tab.color : .white.opacity(0.6))
-                    .scaleEffect(isPressed ? 0.85 : (isHovered && !isSelected ? 1.08 : 1.0))
-                    .shadow(color: isSelected ? tab.color.opacity(0.3) : Color.clear, radius: 4, x: 0, y: 1)
+                    .scaleEffect(isPressed ? 0.85 : (isHovered && !isSelected ? 1.05 : 1.0))
+                    .shadow(color: isSelected ? tab.color.opacity(0.25) : Color.clear, radius: 3, x: 0, y: 1)
             }
-            .frame(width: 28, height: 28)
+            .frame(width: 24, height: 24)
             .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isHovered)
             .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isSelected)
             .animation(.spring(response: 0.2, dampingFraction: 0.6), value: isPressed)
