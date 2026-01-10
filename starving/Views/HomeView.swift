@@ -100,7 +100,7 @@ struct FloatingTabBar: View {
     let tabs: [Tab] = [.today, .items, .reminders, .settings]
     
     var body: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: 24) {
             ForEach(tabs, id: \.self) { tab in
                 TabBarButton(
                     tab: tab,
@@ -119,8 +119,8 @@ struct FloatingTabBar: View {
                 )
             }
         }
-        .padding(.vertical, 12)
-        .padding(.horizontal, 20)
+        .padding(.vertical, 10)
+        .padding(.horizontal, 16)
         .background(
             Capsule()
                 .fill(.ultraThinMaterial)
@@ -156,61 +156,15 @@ struct TabBarButton: View {
     let onHover: (Bool) -> Void
     
     @State private var isPressed = false
-    @State private var glowIntensity: Double = 0
     
     var body: some View {
         Button(action: action) {
-            ZStack {
-                // Background circle
-                Circle()
-                    .fill(.ultraThinMaterial)
-                    .frame(width: 56, height: 56)
-                
-                // Lensing glow effect
-                Circle()
-                    .fill(
-                        RadialGradient(
-                            colors: [
-                                tab.color.opacity(isSelected ? 0.6 : 0.3),
-                                tab.color.opacity(isSelected ? 0.3 : 0.1),
-                                Color.clear
-                            ],
-                            center: .center,
-                            startRadius: 0,
-                            endRadius: isHovered ? 40 : 30
-                        )
-                    )
-                    .frame(width: 56, height: 56)
-                    .opacity(isSelected || isHovered ? 1 : 0)
-                    .scaleEffect(isSelected || isHovered ? 1.0 + glowIntensity : 1.0)
-                
-                // Icon
-                Image(systemName: tab.iconName)
-                    .font(.system(size: 24))
-                    .foregroundColor(isSelected ? tab.color : .primary.opacity(0.6))
-                    .scaleEffect(isPressed ? 0.85 : (isHovered ? 1.2 : 1.0))
-                    .rotationEffect(.degrees(isPressed ? 5 : 0))
-            }
-            .overlay(
-                Circle()
-                    .strokeBorder(
-                        LinearGradient(
-                            colors: isSelected ? [
-                                tab.color.opacity(0.6),
-                                tab.color.opacity(0.3)
-                            ] : [
-                                Color.white.opacity(0.2),
-                                Color.white.opacity(0.1)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: isSelected ? 2 : 1
-                    )
-                    .frame(width: 56, height: 56)
-            )
-            .shadow(color: isSelected ? tab.color.opacity(0.4) : Color.black.opacity(0.1), 
-                    radius: isSelected ? 12 : 4, x: 0, y: isSelected ? 6 : 2)
+            Image(systemName: tab.iconName)
+                .font(.system(size: 22, weight: isSelected ? .semibold : .regular))
+                .foregroundColor(isSelected ? tab.color : .white.opacity(0.6))
+                .scaleEffect(isPressed ? 0.85 : (isHovered ? 1.15 : 1.0))
+                .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isHovered)
+                .animation(.spring(response: 0.2, dampingFraction: 0.6), value: isPressed)
         }
         .buttonStyle(PlainButtonStyle())
         .simultaneousGesture(
@@ -224,28 +178,6 @@ struct TabBarButton: View {
                     onHover(false)
                 }
         )
-        .onAppear {
-            if isSelected {
-                withAnimation(
-                    .easeInOut(duration: 1.5)
-                    .repeatForever(autoreverses: true)
-                ) {
-                    glowIntensity = 0.15
-                }
-            }
-        }
-        .onChange(of: isSelected) { newValue in
-            if newValue {
-                withAnimation(
-                    .easeInOut(duration: 1.5)
-                    .repeatForever(autoreverses: true)
-                ) {
-                    glowIntensity = 0.15
-                }
-            } else {
-                glowIntensity = 0
-            }
-        }
     }
 }
 
