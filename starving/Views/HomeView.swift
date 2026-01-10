@@ -120,12 +120,12 @@ struct FloatingTabBar: View {
         .background(
             ZStack {
                 // Blur effect
-                RoundedRectangle(cornerRadius: 20)
+                RoundedRectangle(cornerRadius: 28)
                     .fill(.ultraThinMaterial)
                     .opacity(0.7)
                 
                 // Subtle gradient overlay for depth
-                RoundedRectangle(cornerRadius: 20)
+                RoundedRectangle(cornerRadius: 28)
                     .fill(
                         LinearGradient(
                             colors: [
@@ -138,7 +138,7 @@ struct FloatingTabBar: View {
                     )
                 
                 // Border
-                RoundedRectangle(cornerRadius: 20)
+                RoundedRectangle(cornerRadius: 28)
                     .strokeBorder(
                         LinearGradient(
                             colors: [
@@ -174,10 +174,10 @@ struct TabBarButton: View {
                 .background(
                     ZStack {
                         if isSelected {
-                            RoundedRectangle(cornerRadius: 14)
+                            RoundedRectangle(cornerRadius: 16)
                                 .fill(tab.color.opacity(0.18))
                             
-                            RoundedRectangle(cornerRadius: 14)
+                            RoundedRectangle(cornerRadius: 16)
                                 .fill(
                                     LinearGradient(
                                         colors: [
