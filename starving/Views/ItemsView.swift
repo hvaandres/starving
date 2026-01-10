@@ -1,120 +1,42 @@
 import SwiftUI
 import SwiftData
 
-// MARK: - Quick Add Item Component
-struct QuickAddItemBar: View {
-    @Environment(\.modelContext) private var context
-    @State private var itemName: String = ""
-    @FocusState private var isTextFieldFocused: Bool
-    var onItemAdded: () -> Void
-    
-    var body: some View {
-        HStack {
-            TextField("Add new item...", text: $itemName)
-                .padding(.horizontal)
-                .padding(.vertical, 12)
-                .background(Color(.systemGray6))
-                .cornerRadius(10)
-                .focused($isTextFieldFocused)
-                .submitLabel(.done)
-                .onSubmit(addItem)
-            
-            Button(action: addItem) {
-                Image(systemName: "plus.circle.fill")
-                    .font(.title2)
-                    .foregroundColor(.accentColor)
-            }
-            .disabled(itemName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-            .opacity(itemName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.5 : 1)
-        }
-        .padding(.horizontal)
-    }
-    
-    private func addItem() {
-        let trimmedName = itemName.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmedName.isEmpty else { return }
-        
-        let newItem = Item(title: trimmedName)
-        context.insert(newItem)
-        
-        try? context.save()
-        itemName = ""
-        onItemAdded()
-        
-        // Add haptic feedback
-        let generator = UIImpactFeedbackGenerator(style: .medium)
-        generator.impactOccurred()
-    }
-}
-
-// MARK: - Section Header
-struct SectionHeaderView: View {
-    let title: String
-    let count: Int
-    
-    var body: some View {
-        HStack {
-            Text(title)
-                .font(.headline)
-                .foregroundColor(.primary)
-            
-            Spacer()
-            
-            Text("\(count) items")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-        }
-        .padding(.horizontal)
-        .padding(.top, 10)
-        .padding(.bottom, 5)
-    }
-}
-
 struct ItemsView: View {
     // MARK: - Properties
     @Environment(\.modelContext) private var context
-    @Environment(\.colorScheme) private var colorScheme
     
-    @Query(filter: Day.currentDayPredicate(),
-           sort: \.date) private var today: [Day]
-    
-    @Query(filter: #Predicate<Item> { $0.isHidden == false },
-           sort: [SortDescriptor(\Item.title, order: .forward)])
-    private var items: [Item]
+    @Query(filter: Day.currentDayPredicate(), sort: \.date) private var today: [Day]
+    @Query(filter: #Predicate<Item> { $0.isHidden == false }, sort: [SortDescriptor(\Item.title, order: .forward)]) private var items: [Item]
     
     @State private var showAddView: Bool = false
     @State private var errorMessage: String? = nil
     @State private var showError: Bool = false
-    @State private var refreshTrigger: Bool = false
-    
-    private var showQuickAddBar: Bool {
-        !items.isEmpty
-    }
     
     // MARK: - View
     var body: some View {
-        VStack(spacing: 20) {
-            header
-            messageView
-            
-            if showQuickAddBar {
-                // Quick add bar for easy item entry
-                QuickAddItemBar() {
-                    refreshTrigger.toggle()
+        ZStack(alignment: .bottomTrailing) {
+            VStack(spacing: 0) {
+                // Header section
+                VStack(spacing: 8) {
+                    header
+                    messageView
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 20)
+                .padding(.bottom, 12)
+                
+                if items.isEmpty {
+                    emptyStateView
+                } else {
+                    itemsList
                 }
             }
             
-            if items.isEmpty {
-                emptyStateView
-            } else {
-                itemsList
-                
-                if !showQuickAddBar {
-                    addButton
-                }
+            // Floating + button
+            if !items.isEmpty {
+                floatingAddButton
             }
         }
-        .padding()
         .sheet(isPresented: $showAddView) {
             AddItemView()
                 .presentationDetents([.fraction(0.3)])
@@ -131,61 +53,165 @@ struct ItemsView: View {
     
     // MARK: - View Components
     private var header: some View {
-        Text("My groceries")
-            .font(.largeTitle)
-            .bold()
-            .frame(maxWidth: .infinity, alignment: .leading)
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Items")
+                    .font(.system(size: 32, weight: .bold))
+                Text("\(items.count) item\(items.count == 1 ? "" : "s")")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
+            Spacer()
+        }
     }
     
     private var messageView: some View {
-        Text("Never forget your weekly needs! Add groceries and select items to move them to the Today's tab.")
+        Text("Add groceries and select to move to Today")
+            .font(.subheadline)
+            .foregroundColor(.secondary)
             .frame(maxWidth: .infinity, alignment: .leading)
     }
     
     private var emptyStateView: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 24) {
             Spacer()
             
-            Image("items")
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(maxWidth: 300)
+            ZStack {
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                Color.green.opacity(0.15),
+                                Color.green.opacity(0.05),
+                                Color.clear
+                            ],
+                            center: .center,
+                            startRadius: 30,
+                            endRadius: 80
+                        )
+                    )
+                    .frame(width: 160, height: 160)
+                
+                Image(systemName: "cart.fill")
+                    .font(.system(size: 64))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [Color.green, Color.green.opacity(0.7)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+            }
+            .padding(.bottom, 8)
             
-            ToolTipView(text: "Start by adding groceries you need for the week. Add items easily with the quick add bar above or the + button below.")
+            VStack(spacing: 12) {
+                Text("No items yet")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                
+                Text("Start adding your grocery items")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 40)
+            }
+            .padding(.bottom, 32)
             
-            addButton
+            Button(action: { showAddView = true }) {
+                HStack(spacing: 8) {
+                    Image(systemName: "plus")
+                        .font(.system(size: 15))
+                    Text("Add Item")
+                        .font(.system(size: 16, weight: .semibold))
+                }
+                .foregroundColor(.white)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 14)
+                .background(
+                    Capsule()
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.green, Color.green.opacity(0.85)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .overlay(Capsule().stroke(Color.white.opacity(0.3), lineWidth: 1))
+                        .shadow(color: Color.green.opacity(0.3), radius: 12, x: 0, y: 6)
+                )
+            }
             
             Spacer()
         }
     }
     
     private var itemsList: some View {
-        List {
-            ForEach(items) { item in
-                ItemRow(item: item, isSelected: isItemSelected(item)) {
-                    toggleItem(item)
-                }
-                .swipeActions(edge: .leading) {
-                    Button(role: .destructive) {
-                        deleteItem(item)
-                    } label: {
-                        Label("Delete", systemImage: "trash")
+        ScrollView {
+            LazyVStack(spacing: 0) {
+                ForEach(items) { item in
+                    ItemRow(item: item, isSelected: isItemSelected(item)) {
+                        toggleItem(item)
+                    }
+                    .padding(.horizontal, 20)
+                    
+                    if item.id != items.last?.id {
+                        Divider()
+                            .padding(.leading, 60)
+                            .padding(.trailing, 20)
+                            .opacity(0.3)
                     }
                 }
             }
+            .padding(.vertical, 8)
+            .padding(.bottom, 80)
         }
-        .listStyle(.plain)
     }
     
-    private var addButton: some View {
-        Button {
-            showAddView.toggle()
-        } label: {
-            Text("Add New Item")
-                .font(.headline)
-                .primaryButtonStyle()
+    private var floatingAddButton: some View {
+        Button(action: { showAddView = true }) {
+            ZStack {
+                Circle()
+                    .fill(.ultraThinMaterial)
+                    .frame(width: 56, height: 56)
+                
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                Color.green.opacity(0.6),
+                                Color.green.opacity(0.3),
+                                Color.clear
+                            ],
+                            center: .center,
+                            startRadius: 0,
+                            endRadius: 35
+                        )
+                    )
+                    .frame(width: 56, height: 56)
+                
+                Image(systemName: "plus")
+                    .font(.system(size: 24, weight: .semibold))
+                    .foregroundColor(.white)
+            }
+            .overlay(
+                Circle()
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [
+                                Color.white.opacity(0.4),
+                                Color.white.opacity(0.2)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1
+                    )
+                    .frame(width: 56, height: 56)
+            )
+            .shadow(color: Color.green.opacity(0.4), radius: 12, x: 0, y: 6)
         }
-        .padding(.horizontal)
+        .padding(.trailing, 20)
+        .padding(.bottom, 20)
     }
     
     // MARK: - Helper Methods
@@ -199,7 +225,6 @@ struct ItemsView: View {
                 throw NSError(domain: "ItemError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid data encountered"])
             }
             
-            // Add haptic feedback
             let generator = UIImpactFeedbackGenerator(style: .light)
             generator.impactOccurred()
             
@@ -213,11 +238,6 @@ struct ItemsView: View {
         } catch {
             handleError(error)
         }
-    }
-    
-    private func deleteItem(_ item: Item) {
-        context.delete(item)
-        try? context.save()
     }
     
     private func getToday() -> Day? {
