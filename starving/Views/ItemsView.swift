@@ -1,123 +1,56 @@
 import SwiftUI
 import SwiftData
 
-// MARK: - Quick Add Item Component
-struct QuickAddItemBar: View {
-    @Environment(\.modelContext) private var context
-    @State private var itemName: String = ""
-    @FocusState private var isTextFieldFocused: Bool
-    var onItemAdded: () -> Void
-    
-    var body: some View {
-        HStack {
-            TextField("Add new item...", text: $itemName)
-                .padding(.horizontal)
-                .padding(.vertical, 12)
-                .background(Color(.systemGray6))
-                .cornerRadius(10)
-                .focused($isTextFieldFocused)
-                .submitLabel(.done)
-                .onSubmit(addItem)
-            
-            Button(action: addItem) {
-                Image(systemName: "plus.circle.fill")
-                    .font(.title2)
-                    .foregroundColor(.accentColor)
-            }
-            .disabled(itemName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-            .opacity(itemName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.5 : 1)
-        }
-        .padding(.horizontal)
-    }
-    
-    private func addItem() {
-        let trimmedName = itemName.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmedName.isEmpty else { return }
-        
-        let newItem = Item(title: trimmedName)
-        context.insert(newItem)
-        
-        try? context.save()
-        itemName = ""
-        onItemAdded()
-        
-        // Add haptic feedback
-        let generator = UIImpactFeedbackGenerator(style: .medium)
-        generator.impactOccurred()
-    }
-}
-
-// MARK: - Section Header
-struct SectionHeaderView: View {
-    let title: String
-    let count: Int
-    
-    var body: some View {
-        HStack {
-            Text(title)
-                .font(.headline)
-                .foregroundColor(.primary)
-            
-            Spacer()
-            
-            Text("\(count) items")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-        }
-        .padding(.horizontal)
-        .padding(.top, 10)
-        .padding(.bottom, 5)
-    }
-}
-
 struct ItemsView: View {
     // MARK: - Properties
     @Environment(\.modelContext) private var context
-    @Environment(\.colorScheme) private var colorScheme
     
-    @Query(filter: Day.currentDayPredicate(),
-           sort: \.date) private var today: [Day]
+    @Query(filter: Day.currentDayPredicate(), sort: \.date) private var today: [Day]
+    @Query(filter: #Predicate<Item> { $0.isHidden == false }, sort: [SortDescriptor(\Item.title, order: .forward)]) private var items: [Item]
     
-    @Query(filter: #Predicate<Item> { $0.isHidden == false },
-           sort: [SortDescriptor(\Item.title, order: .forward)])
-    private var items: [Item]
-    
-    @State private var showAddView: Bool = false
+    @State private var showAddInput: Bool = false
+    @State private var newItemTitle: String = ""
     @State private var errorMessage: String? = nil
     @State private var showError: Bool = false
-    @State private var refreshTrigger: Bool = false
+    @FocusState private var isInputFocused: Bool
     
-    private var showQuickAddBar: Bool {
-        !items.isEmpty
-    }
+    @State private var editingItem: Item? = nil
+    @State private var editedTitle: String = ""
+    @FocusState private var isEditFocused: Bool
     
     // MARK: - View
     var body: some View {
-        VStack(spacing: 20) {
-            header
-            messageView
-            
-            if showQuickAddBar {
-                // Quick add bar for easy item entry
-                QuickAddItemBar() {
-                    refreshTrigger.toggle()
+        ZStack(alignment: .bottomTrailing) {
+            VStack(spacing: 0) {
+                // Header section
+                VStack(spacing: 8) {
+                    header
+                    messageView
                 }
-            }
-            
-            if items.isEmpty {
-                emptyStateView
-            } else {
-                itemsList
+                .padding(.horizontal, 20)
+                .padding(.top, 20)
+                .padding(.bottom, 12)
                 
-                if !showQuickAddBar {
-                    addButton
+                // Inline add input
+                if showAddInput {
+                    addInputField
+                        .transition(.asymmetric(
+                            insertion: .move(edge: .top).combined(with: .opacity),
+                            removal: .move(edge: .top).combined(with: .opacity)
+                        ))
+                }
+                
+                if items.isEmpty {
+                    emptyStateView
+                } else {
+                    itemsList
                 }
             }
-        }
-        .padding()
-        .sheet(isPresented: $showAddView) {
-            AddItemView()
-                .presentationDetents([.fraction(0.3)])
+            
+            // Floating + button
+            if !items.isEmpty {
+                floatingAddButton
+            }
         }
         .alert("Error", isPresented: $showError, presenting: errorMessage) { _ in
             Button("OK", role: .cancel) {}
@@ -131,29 +64,200 @@ struct ItemsView: View {
     
     // MARK: - View Components
     private var header: some View {
-        Text("My groceries")
-            .font(.largeTitle)
-            .bold()
-            .frame(maxWidth: .infinity, alignment: .leading)
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Items")
+                    .font(.system(size: 32, weight: .bold))
+                Text("\(items.count) item\(items.count == 1 ? "" : "s")")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
+            Spacer()
+        }
     }
     
     private var messageView: some View {
-        Text("Never forget your weekly needs! Add groceries and select items to move them to the Today's tab.")
+        Text("Add groceries and select to move to Today")
+            .font(.subheadline)
+            .foregroundColor(.secondary)
             .frame(maxWidth: .infinity, alignment: .leading)
     }
     
+    private var addInputField: some View {
+        HStack(spacing: 12) {
+            // Input field
+            HStack(spacing: 12) {
+                Image(systemName: "cart.badge.plus")
+                    .font(.system(size: 18))
+                    .foregroundColor(.green)
+                
+                TextField("Add grocery item...", text: $newItemTitle)
+                    .font(.system(size: 16))
+                    .focused($isInputFocused)
+                    .submitLabel(.done)
+                    .onSubmit {
+                        addNewItem()
+                    }
+                
+                if !newItemTitle.isEmpty {
+                    Button(action: { 
+                        newItemTitle = ""
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 16))
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(.ultraThinMaterial)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .strokeBorder(
+                                LinearGradient(
+                                    colors: [
+                                        Color.green.opacity(0.4),
+                                        Color.green.opacity(0.2)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 2
+                            )
+                    )
+            )
+            .shadow(color: Color.green.opacity(0.15), radius: 8, x: 0, y: 4)
+            
+            // Action buttons
+            HStack(spacing: 8) {
+                // Add button
+                Button(action: { addNewItem() }) {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white)
+                        .frame(width: 44, height: 44)
+                        .background(
+                            Circle()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [Color.green, Color.green.opacity(0.85)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                        )
+                        .shadow(color: Color.green.opacity(0.3), radius: 8, x: 0, y: 4)
+                }
+                .disabled(newItemTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                .opacity(newItemTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.5 : 1.0)
+                
+                // Cancel button
+                Button(action: { 
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        showAddInput = false
+                        newItemTitle = ""
+                        isInputFocused = false
+                    }
+                }) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.secondary)
+                        .frame(width: 44, height: 44)
+                        .background(
+                            Circle()
+                                .fill(.ultraThinMaterial)
+                                .overlay(
+                                    Circle()
+                                        .strokeBorder(Color.white.opacity(0.2), lineWidth: 1)
+                                )
+                        )
+                        .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+                }
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.bottom, 12)
+    }
+    
     private var emptyStateView: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 24) {
             Spacer()
             
-            Image("items")
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(maxWidth: 300)
+            ZStack {
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                Color.green.opacity(0.15),
+                                Color.green.opacity(0.05),
+                                Color.clear
+                            ],
+                            center: .center,
+                            startRadius: 30,
+                            endRadius: 80
+                        )
+                    )
+                    .frame(width: 160, height: 160)
+                
+                Image(systemName: "cart.fill")
+                    .font(.system(size: 64))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [Color.green, Color.green.opacity(0.7)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+            }
+            .padding(.bottom, 8)
             
-            ToolTipView(text: "Start by adding groceries you need for the week. Add items easily with the quick add bar above or the + button below.")
+            VStack(spacing: 12) {
+                Text("No items yet")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                
+                Text("Start adding your grocery items")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 40)
+            }
+            .padding(.bottom, 32)
             
-            addButton
+            Button(action: { 
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                    showAddInput = true
+                }
+                // Focus keyboard immediately
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    isInputFocused = true
+                }
+            }) {
+                HStack(spacing: 8) {
+                    Image(systemName: "plus")
+                        .font(.system(size: 15))
+                    Text("Add Item")
+                        .font(.system(size: 16, weight: .semibold))
+                }
+                .foregroundColor(.white)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 14)
+                .background(
+                    Capsule()
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.green, Color.green.opacity(0.85)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .overlay(Capsule().stroke(Color.white.opacity(0.3), lineWidth: 1))
+                        .shadow(color: Color.green.opacity(0.3), radius: 12, x: 0, y: 6)
+                )
+            }
             
             Spacer()
         }
@@ -162,30 +266,95 @@ struct ItemsView: View {
     private var itemsList: some View {
         List {
             ForEach(items) { item in
-                ItemRow(item: item, isSelected: isItemSelected(item)) {
-                    toggleItem(item)
-                }
-                .swipeActions(edge: .leading) {
-                    Button(role: .destructive) {
-                        deleteItem(item)
-                    } label: {
-                        Label("Delete", systemImage: "trash")
+                if editingItem?.id == item.id {
+                    editItemField(item: item)
+                        .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
+                } else {
+                    ItemRow(item: item, isSelected: isItemSelected(item)) {
+                        toggleItem(item)
+                    }
+                    .listRowInsets(EdgeInsets(top: 0, leading: 20, bottom: 0, trailing: 20))
+                    .listRowSeparator(.visible)
+                    .listRowSeparatorTint(Color.secondary.opacity(0.3))
+                    .listRowBackground(Color.clear)
+                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                        Button(role: .destructive) {
+                            deleteItem(item)
+                        } label: {
+                            Label("Delete", systemImage: "trash.fill")
+                        }
+                        .tint(.red)
+                        
+                        Button {
+                            startEditingItem(item)
+                        } label: {
+                            Label("Edit", systemImage: "pencil")
+                        }
+                        .tint(.blue)
                     }
                 }
             }
         }
         .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .padding(.bottom, 80)
     }
     
-    private var addButton: some View {
-        Button {
-            showAddView.toggle()
-        } label: {
-            Text("Add New Item")
-                .font(.headline)
-                .primaryButtonStyle()
+    private var floatingAddButton: some View {
+        Button(action: { 
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                showAddInput = true
+            }
+            // Focus keyboard immediately
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                isInputFocused = true
+            }
+        }) {
+            Image(systemName: "plus")
+                .font(.system(size: 22, weight: .medium))
+                .foregroundColor(.white.opacity(0.9))
+                .frame(width: 48, height: 48)
+                .background(
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(.ultraThinMaterial)
+                            .opacity(0.7)
+                        
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(
+                                LinearGradient(
+                                    colors: [
+                                        Color.white.opacity(0.08),
+                                        Color.white.opacity(0.02)
+                                    ],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                            )
+                        
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(Color.green.opacity(0.18))
+                        
+                        RoundedRectangle(cornerRadius: 16)
+                            .strokeBorder(
+                                LinearGradient(
+                                    colors: [
+                                        Color.white.opacity(0.3),
+                                        Color.white.opacity(0.1)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1
+                            )
+                    }
+                )
+                .shadow(color: Color.green.opacity(0.25), radius: 15, x: 0, y: 8)
         }
-        .padding(.horizontal)
+        .padding(.trailing, 20)
+        .padding(.bottom, 20)
     }
     
     // MARK: - Helper Methods
@@ -199,7 +368,6 @@ struct ItemsView: View {
                 throw NSError(domain: "ItemError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid data encountered"])
             }
             
-            // Add haptic feedback
             let generator = UIImpactFeedbackGenerator(style: .light)
             generator.impactOccurred()
             
@@ -213,11 +381,6 @@ struct ItemsView: View {
         } catch {
             handleError(error)
         }
-    }
-    
-    private func deleteItem(_ item: Item) {
-        context.delete(item)
-        try? context.save()
     }
     
     private func getToday() -> Day? {
@@ -243,6 +406,192 @@ struct ItemsView: View {
             self.errorMessage = message
             self.showError = true
         }
+    }
+    
+    private func addNewItem() {
+        let cleanedTitle = newItemTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !cleanedTitle.isEmpty else { return }
+        
+        let newItem = Item(title: cleanedTitle)
+        context.insert(newItem)
+        
+        do {
+            try context.save()
+            
+            // Haptic feedback
+            let generator = UIImpactFeedbackGenerator(style: .medium)
+            generator.impactOccurred()
+            
+            // Reset and close
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                newItemTitle = ""
+                showAddInput = false
+                isInputFocused = false
+            }
+        } catch {
+            handleError(error)
+        }
+    }
+    
+    private func startEditingItem(_ item: Item) {
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+            editingItem = item
+            editedTitle = item.title
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            isEditFocused = true
+        }
+    }
+    
+    private func saveEdit() {
+        let cleanedTitle = editedTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !cleanedTitle.isEmpty, let item = editingItem else { return }
+        
+        item.title = cleanedTitle
+        
+        do {
+            try context.save()
+            
+            // Haptic feedback
+            let generator = UIImpactFeedbackGenerator(style: .medium)
+            generator.impactOccurred()
+            
+            // Reset
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                editingItem = nil
+                editedTitle = ""
+                isEditFocused = false
+            }
+        } catch {
+            handleError(error)
+        }
+    }
+    
+    private func cancelEdit() {
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+            editingItem = nil
+            editedTitle = ""
+            isEditFocused = false
+        }
+    }
+    
+    private func deleteItem(_ item: Item) {
+        // Haptic feedback
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.warning)
+        
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+            // Remove from today's list if present
+            if let today = getToday() {
+                if let index = today.items.firstIndex(where: { $0.id == item.id }) {
+                    today.items.remove(at: index)
+                }
+            }
+            
+            // Delete the item
+            context.delete(item)
+            
+            do {
+                try context.save()
+            } catch {
+                handleError(error)
+            }
+        }
+    }
+    
+    private func editItemField(item: Item) -> some View {
+        HStack(spacing: 12) {
+            // Edit field
+            HStack(spacing: 12) {
+                Image(systemName: "pencil")
+                    .font(.system(size: 18))
+                    .foregroundColor(.blue)
+                
+                TextField("Edit item...", text: $editedTitle)
+                    .font(.system(size: 16))
+                    .focused($isEditFocused)
+                    .submitLabel(.done)
+                    .onSubmit {
+                        saveEdit()
+                    }
+                
+                if !editedTitle.isEmpty {
+                    Button(action: { 
+                        editedTitle = item.title
+                    }) {
+                        Image(systemName: "arrow.uturn.backward.circle.fill")
+                            .font(.system(size: 16))
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(.ultraThinMaterial)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .strokeBorder(
+                                LinearGradient(
+                                    colors: [
+                                        Color.blue.opacity(0.4),
+                                        Color.blue.opacity(0.2)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 2
+                            )
+                    )
+            )
+            .shadow(color: Color.blue.opacity(0.15), radius: 8, x: 0, y: 4)
+            
+            // Action buttons
+            HStack(spacing: 8) {
+                // Save button
+                Button(action: { saveEdit() }) {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white)
+                        .frame(width: 44, height: 44)
+                        .background(
+                            Circle()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [Color.blue, Color.blue.opacity(0.85)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                        )
+                        .shadow(color: Color.blue.opacity(0.3), radius: 8, x: 0, y: 4)
+                }
+                .disabled(editedTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                .opacity(editedTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.5 : 1.0)
+                
+                // Cancel button
+                Button(action: { cancelEdit() }) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.secondary)
+                        .frame(width: 44, height: 44)
+                        .background(
+                            Circle()
+                                .fill(.ultraThinMaterial)
+                                .overlay(
+                                    Circle()
+                                        .strokeBorder(Color.white.opacity(0.2), lineWidth: 1)
+                                )
+                        )
+                        .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+                }
+            }
+        }
+        .transition(.asymmetric(
+            insertion: .scale.combined(with: .opacity),
+            removal: .scale.combined(with: .opacity)
+        ))
     }
 }
 

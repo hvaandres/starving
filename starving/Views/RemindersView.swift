@@ -1,5 +1,5 @@
 //
-//  TodayView.swift
+//  RemindersView.swift
 //  starving
 //
 //  Created by Alan Haro on 1/24/25.
@@ -9,33 +9,70 @@ import SwiftUI
 import SwiftData
 import UserNotifications
 
-struct Theme {
-    static let primaryColor = Color.black
-    static let secondaryColor = Color(.systemGray6)
-    static let accentColor = Color.orange
-    static let textColor = Color.primary
-    static let subtitleColor = Color.secondary
-}
-
 struct ReminderTimeCard: View {
     let time: String
     let isActive: Bool
     
     var body: some View {
-        VStack(spacing: 8) {
-            Image(systemName: "bell.circle.fill")
-                .font(.system(size: 24))
-            Text(time)
-                .font(.subheadline) // Changed from .headline to .subheadline
-                .lineLimit(1)       // Ensure single line
-                .minimumScaleFactor(0.8) // Allow text to scale down if needed
+        ZStack {
+            // Glow background when active
+            if isActive {
+                RoundedRectangle(cornerRadius: 18)
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                Color.orange.opacity(0.4),
+                                Color.orange.opacity(0.2),
+                                Color.clear
+                            ],
+                            center: .center,
+                            startRadius: 0,
+                            endRadius: 60
+                        )
+                    )
+                    .frame(width: 95, height: 95)
+                    .blur(radius: 8)
+            }
+            
+            // Card content
+            VStack(spacing: 10) {
+                // Icon
+                Image(systemName: isActive ? "bell.badge.fill" : "bell")
+                    .font(.system(size: 24, weight: .semibold))
+                    .foregroundColor(isActive ? Color.orange : .white.opacity(0.6))
+                
+                // Time
+                Text(time)
+                    .font(.subheadline.weight(isActive ? .semibold : .medium))
+                    .foregroundColor(isActive ? .white : .white.opacity(0.7))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
+            .frame(width: 85, height: 85)
+            .background(
+                RoundedRectangle(cornerRadius: 18)
+                    .fill(isActive ? .thinMaterial : .ultraThinMaterial)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 18)
+                            .strokeBorder(
+                                LinearGradient(
+                                    colors: isActive ? [
+                                        Color.orange.opacity(0.5),
+                                        Color.orange.opacity(0.25)
+                                    ] : [
+                                        Color.white.opacity(0.2),
+                                        Color.white.opacity(0.1)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1
+                            )
+                    )
+            )
+            .shadow(color: isActive ? Color.orange.opacity(0.4) : Color.black.opacity(0.15), radius: 12, x: 0, y: 4)
         }
-        .padding()
-        .frame(width: 100)
-        .background(isActive ? Theme.primaryColor : Theme.secondaryColor)
-        .foregroundColor(isActive ? .white : Theme.textColor)
-        .cornerRadius(12)
-        .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
+        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isActive)
     }
 }
 
@@ -45,26 +82,62 @@ struct AnimatedToggle: View {
     
     var body: some View {
         Button(action: {
-            withAnimation(.spring()) {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                 isOn.toggle()
             }
         }) {
-            HStack {
+            HStack(spacing: 16) {
+                // Icon
+                Image(systemName: isOn ? "bell.badge.fill" : "bell.slash")
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundColor(isOn ? Color.orange : .white.opacity(0.5))
+                
+                // Label
                 Text(label)
                     .font(.headline)
+                    .foregroundColor(.white)
+                
                 Spacer()
-                Circle()
-                    .fill(isOn ? Theme.primaryColor : .gray)
-                    .frame(width: 30, height: 30)
-                    .overlay(
-                        Image(systemName: isOn ? "bell.fill" : "bell.slash.fill")
-                            .foregroundColor(.white)
-                    )
+                
+                // Toggle indicator
+                ZStack {
+                    Capsule()
+                        .fill(isOn ? Color.orange.opacity(0.3) : Color.white.opacity(0.1))
+                        .frame(width: 50, height: 30)
+                    
+                    Circle()
+                        .fill(.white)
+                        .frame(width: 24, height: 24)
+                        .offset(x: isOn ? 10 : -10)
+                        .shadow(color: Color.black.opacity(0.2), radius: 4, x: 0, y: 2)
+                }
             }
-            .padding()
-            .background(Theme.secondaryColor)
-            .cornerRadius(15)
+            .padding(.vertical, 16)
+            .padding(.horizontal, 20)
+            .background(
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(.ultraThinMaterial)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20)
+                            .strokeBorder(
+                                LinearGradient(
+                                    colors: isOn ? [
+                                        Color.orange.opacity(0.4),
+                                        Color.orange.opacity(0.2)
+                                    ] : [
+                                        Color.white.opacity(0.2),
+                                        Color.white.opacity(0.1)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: isOn ? 2 : 1
+                            )
+                    )
+            )
+            .shadow(color: isOn ? Color.orange.opacity(0.25) : Color.black.opacity(0.15), radius: 10, x: 0, y: 4)
         }
+        .buttonStyle(.plain)
     }
 }
 
@@ -91,34 +164,38 @@ struct RemindersView: View {
     }
     
     var body: some View {
-        ScrollView(showsIndicators: false) {
-                    VStack(spacing: 24) {
-                        header
-                        reminderToggle
-                        
-                        Group {
-                            if isRemindersOn {
-                                timeSelectionSection
-                                statusCard
-                                infoSection
-                            } else {
-                                infoSection
-                                if !isRemindersOn {  // Explicit check
-                                    VStack(alignment: .leading, spacing: 16) {
-                                        Image("reminders")
-                                            .resizable()
-                                            .aspectRatio(contentMode: .fit)
-                                            .frame(maxWidth: .infinity)
-                                            .padding(.top, 16)
-                                    }
+        ZStack {
+            Color.black.ignoresSafeArea()
+            
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 24) {
+                    header
+                    reminderToggle
+                    
+                    Group {
+                        if isRemindersOn {
+                            timeSelectionSection
+                            statusCard
+                            infoSection
+                        } else {
+                            infoSection
+                            if !isRemindersOn {
+                                VStack(alignment: .leading, spacing: 16) {
+                                    Image("reminders")
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fit)
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.top, 16)
                                 }
                             }
                         }
-                        
                     }
-                    .padding()
+                    
+                }
+                .padding()
+                .padding(.bottom, 80)
+            }
         }
-        .background(Color(.systemBackground))
         .onAppear(perform: setupInitialState)
         .onChange(of: isRemindersOn, handleReminderToggle)
         .onChange(of: selectedDate, handleDateChange)
@@ -137,11 +214,25 @@ struct RemindersView: View {
     
     private var header: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Daily Reminders")
-                .font(.system(size: 34, weight: .bold))
-            Text("Set up gentle daily reminders to make sure you don't forget to purchase any of your groceries")
+            HStack(spacing: 12) {
+                Image(systemName: "bell.badge.circle.fill")
+                    .font(.system(size: 36))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [Color.orange, Color.orange.opacity(0.7)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                
+                Text("Daily Reminders")
+                    .font(.system(size: 32, weight: .bold))
+                    .foregroundColor(.white)
+            }
+            
+            Text("Never forget your groceries with gentle daily notifications")
                 .font(.subheadline)
-                .foregroundColor(Theme.subtitleColor)
+                .foregroundColor(.white.opacity(0.7))
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -154,6 +245,7 @@ struct RemindersView: View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Choose Reminder Time")
                 .font(.headline)
+                .foregroundColor(.white)
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
@@ -163,78 +255,189 @@ struct RemindersView: View {
                             isActive: Calendar.current.compare(time, to: selectedDate, toGranularity: .minute) == .orderedSame
                         )
                         .onTapGesture {
-                            selectedDate = time
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                selectedDate = time
+                            }
                         }
                     }
                     
-                    Button(action: { isEditingTime = true }) {
-                        VStack(spacing: 8) {
-                            Image(systemName: "clock.circle.fill")
-                                .font(.system(size: 24))
-                            Text("Custom")
-                                .font(.headline)
+                    Button(action: { 
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            isEditingTime.toggle()
                         }
-                        .padding()
-                        .frame(width: 100)
-                        .background(Theme.secondaryColor)
-                        .cornerRadius(12)
+                    }) {
+                        VStack(spacing: 10) {
+                            Image(systemName: "clock.badge.plus")
+                                .font(.system(size: 24, weight: .semibold))
+                                .foregroundColor(.white.opacity(0.6))
+                            
+                            Text("Custom")
+                                .font(.subheadline.weight(.medium))
+                                .foregroundColor(.white.opacity(0.7))
+                        }
+                        .frame(width: 85, height: 85)
+                        .background(
+                            RoundedRectangle(cornerRadius: 18)
+                                .fill(.ultraThinMaterial)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 18)
+                                        .strokeBorder(
+                                            LinearGradient(
+                                                colors: [
+                                                    Color.white.opacity(0.2),
+                                                    Color.white.opacity(0.1)
+                                                ],
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
+                                            ),
+                                            lineWidth: 1
+                                        )
+                                )
+                        )
+                        .shadow(color: Color.black.opacity(0.15), radius: 12, x: 0, y: 4)
                     }
+                    .buttonStyle(.plain)
                 }
             }
             
             if isEditingTime {
-                DatePicker("Select Time", selection: $selectedDate, displayedComponents: .hourAndMinute)
-                    .datePickerStyle(.wheel)
-                    .padding()
-                    .background(Theme.secondaryColor)
-                    .cornerRadius(12)
+                VStack(spacing: 0) {
+                    DatePicker("Select Time", selection: $selectedDate, displayedComponents: .hourAndMinute)
+                        .datePickerStyle(.wheel)
+                        .labelsHidden()
+                        .padding()
+                }
+                .background(
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(.ultraThinMaterial)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 20)
+                                .strokeBorder(
+                                    LinearGradient(
+                                        colors: [
+                                            Color.orange.opacity(0.3),
+                                            Color.orange.opacity(0.15)
+                                        ],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    ),
+                                    lineWidth: 1.5
+                                )
+                        )
+                )
+                .shadow(color: Color.orange.opacity(0.15), radius: 12, x: 0, y: 4)
             }
         }
     }
     
     private var statusCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 16) {
             HStack {
-                Image(systemName: "bell.and.waves.left.and.right.fill")
-                    .foregroundColor(Theme.primaryColor)
-                Text("Current Schedule")
-                    .font(.headline)
-                Spacer()
-                Text("Active")
-                    .font(.caption)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Theme.primaryColor)
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 22))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [Color.green, Color.green.opacity(0.7)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                
+                Text("Reminder Active")
+                    .font(.title3.weight(.semibold))
                     .foregroundColor(.white)
-                    .cornerRadius(8)
+                
+                Spacer()
             }
             
-            Text("Daily reminder scheduled for \(formattedTime)")
-                .font(.subheadline)
-            
-            Text("Last modified: \(Date(timeIntervalSince1970: lastModified).formatted(.relative(presentation: .named)))")
-                .font(.caption)
-                .foregroundColor(Theme.subtitleColor)
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Image(systemName: "clock.fill")
+                        .font(.system(size: 14))
+                        .foregroundColor(.orange.opacity(0.8))
+                    Text("Daily at \(formattedTime)")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundColor(.white.opacity(0.9))
+                }
+                
+                HStack {
+                    Image(systemName: "calendar")
+                        .font(.system(size: 14))
+                        .foregroundColor(.blue.opacity(0.8))
+                    Text("Last updated \(Date(timeIntervalSince1970: lastModified).formatted(.relative(presentation: .named)))")
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.6))
+                }
+            }
         }
-        .padding()
-        .background(Theme.secondaryColor)
-        .cornerRadius(15)
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .strokeBorder(
+                            LinearGradient(
+                                colors: [
+                                    Color.green.opacity(0.3),
+                                    Color.green.opacity(0.15)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1.5
+                        )
+                )
+        )
+        .shadow(color: Color.green.opacity(0.15), radius: 10, x: 0, y: 4)
     }
     
     private var infoSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("About Daily Reminders")
-                .font(.headline)
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 10) {
+                Image(systemName: "lightbulb.circle.fill")
+                    .font(.system(size: 20))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [Color.yellow, Color.orange],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                
+                Text("How It Works")
+                    .font(.headline)
+                    .foregroundColor(.white)
+            }
             
-            Text("This app helps you stay on top of grocery shopping with gentle reminders, keeping your routine organized and mindful.")
-                .font(.subheadline)
-                .foregroundColor(Theme.subtitleColor)
+            VStack(alignment: .leading, spacing: 10) {
+                InfoRow(icon: "bell.badge", text: "Get notified daily at your chosen time")
+                InfoRow(icon: "checklist", text: "Never miss items from your shopping list")
+                InfoRow(icon: "moon.zzz", text: "Gentle reminders, not intrusive")
+            }
         }
-        .padding()
-        .background(Theme.secondaryColor)
-        .cornerRadius(15)
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .strokeBorder(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(0.2),
+                                    Color.white.opacity(0.1)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
+                )
+        )
+        .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 4)
     }
-
+    
     private var imageSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             Image("reminders")
@@ -244,6 +447,7 @@ struct RemindersView: View {
                 .padding(.top, 16)
         }
     }
+    
     // MARK: - Helper Functions
     
     private func setupInitialState() {
@@ -334,6 +538,24 @@ struct RemindersView: View {
             if let error = error {
                 print("Error scheduling notification: \(error.localizedDescription)")
             }
+        }
+    }
+}
+
+struct InfoRow: View {
+    let icon: String
+    let text: String
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 14))
+                .foregroundColor(.white.opacity(0.7))
+                .frame(width: 20)
+            
+            Text(text)
+                .font(.subheadline)
+                .foregroundColor(.white.opacity(0.8))
         }
     }
 }

@@ -1,0 +1,61 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // User Preferences: userPreferences/{userId}
+    match /userPreferences/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // Per-user data: users/{userId}/items and users/{userId}/days
+    match /users/{userId} {
+      allow read, write: if false; // block direct access to /users root
+
+      match /items/{itemId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /days/{dayId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // Shared lists collection: sharedLists/{listId}
+    // Document shape (expected fields):
+    // {
+    //   ownerId: string,
+    //   sharedWith: array<string>,
+    //   isPublic: bool,
+    //   name: string,
+    //   items: array<object>,
+    //   createdAt: timestamp,
+    //   lastUpdated: timestamp
+    // }
+    match /sharedLists/{listId} {
+      allow create: if isSignedIn() && request.resource.data.ownerId == request.auth.uid;
+
+      // Read if public, owner, or in sharedWith
+      allow get, list: if (
+        resource.data.isPublic == true ||
+        (isSignedIn() && (resource.data.ownerId == request.auth.uid || request.auth.uid in resource.data.sharedWith))
+      );
+
+      // Update: only owner may update the list content
+      // Optionally allow owners to add users to sharedWith; prevent others from changing ownerId
+      allow update: if isSignedIn() && resource.data.ownerId == request.auth.uid &&
+                    request.resource.data.ownerId == resource.data.ownerId;
+
+      // Delete: only owner
+      allow delete: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+    }
+  }
+}
+
