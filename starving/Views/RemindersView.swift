@@ -1,5 +1,5 @@
 //
-//  TodayView.swift
+//  RemindersView.swift
 //  starving
 //
 //  Created by Alan Haro on 1/24/25.
@@ -9,33 +9,66 @@ import SwiftUI
 import SwiftData
 import UserNotifications
 
-struct Theme {
-    static let primaryColor = Color.black
-    static let secondaryColor = Color(.systemGray6)
-    static let accentColor = Color.orange
-    static let textColor = Color.primary
-    static let subtitleColor = Color.secondary
-}
-
 struct ReminderTimeCard: View {
     let time: String
     let isActive: Bool
     
     var body: some View {
-        VStack(spacing: 8) {
-            Image(systemName: "bell.circle.fill")
-                .font(.system(size: 24))
+        VStack(spacing: 12) {
+            ZStack {
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: isActive ? [
+                                Color.purple.opacity(0.6),
+                                Color.purple.opacity(0.3),
+                                Color.clear
+                            ] : [
+                                Color.white.opacity(0.2),
+                                Color.white.opacity(0.1),
+                                Color.clear
+                            ],
+                            center: .center,
+                            startRadius: 0,
+                            endRadius: 30
+                        )
+                    )
+                    .frame(width: 56, height: 56)
+                
+                Image(systemName: "bell.circle.fill")
+                    .font(.system(size: 28))
+                    .foregroundColor(isActive ? .white : .white.opacity(0.7))
+            }
+            
             Text(time)
-                .font(.subheadline) // Changed from .headline to .subheadline
-                .lineLimit(1)       // Ensure single line
-                .minimumScaleFactor(0.8) // Allow text to scale down if needed
+                .font(.subheadline.weight(.semibold))
+                .foregroundColor(.white)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
         }
-        .padding()
+        .padding(.vertical, 16)
+        .padding(.horizontal, 12)
         .frame(width: 100)
-        .background(isActive ? Theme.primaryColor : Theme.secondaryColor)
-        .foregroundColor(isActive ? .white : Theme.textColor)
-        .cornerRadius(12)
-        .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
+        .background(.ultraThinMaterial)
+        .clipShape(Capsule())
+        .overlay(
+            Capsule()
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [
+                            Color.white.opacity(0.3),
+                            Color.white.opacity(0.1)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
+        )
+        .shadow(color: isActive ? Color.purple.opacity(0.4) : Color.black.opacity(0.2), radius: 12, x: 0, y: 4)
+        .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+        .scaleEffect(isActive ? 1.05 : 1.0)
+        .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isActive)
     }
 }
 
@@ -45,26 +78,63 @@ struct AnimatedToggle: View {
     
     var body: some View {
         Button(action: {
-            withAnimation(.spring()) {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                 isOn.toggle()
             }
         }) {
-            HStack {
+            HStack(spacing: 16) {
+                ZStack {
+                    Circle()
+                        .fill(
+                            RadialGradient(
+                                colors: isOn ? [
+                                    Color.purple.opacity(0.6),
+                                    Color.purple.opacity(0.3),
+                                    Color.clear
+                                ] : [
+                                    Color.white.opacity(0.2),
+                                    Color.white.opacity(0.1),
+                                    Color.clear
+                                ],
+                                center: .center,
+                                startRadius: 0,
+                                endRadius: 20
+                            )
+                        )
+                        .frame(width: 44, height: 44)
+                    
+                    Image(systemName: isOn ? "bell.fill" : "bell.slash.fill")
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundColor(.white)
+                }
+                
                 Text(label)
                     .font(.headline)
+                    .foregroundColor(.white)
+                
                 Spacer()
-                Circle()
-                    .fill(isOn ? Theme.primaryColor : .gray)
-                    .frame(width: 30, height: 30)
-                    .overlay(
-                        Image(systemName: isOn ? "bell.fill" : "bell.slash.fill")
-                            .foregroundColor(.white)
-                    )
             }
             .padding()
-            .background(Theme.secondaryColor)
-            .cornerRadius(15)
+            .background(.ultraThinMaterial)
+            .clipShape(Capsule())
+            .overlay(
+                Capsule()
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [
+                                Color.white.opacity(0.3),
+                                Color.white.opacity(0.1)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1
+                    )
+            )
+            .shadow(color: isOn ? Color.purple.opacity(0.3) : Color.black.opacity(0.2), radius: 12, x: 0, y: 4)
+            .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
         }
+        .buttonStyle(.plain)
     }
 }
 
@@ -91,34 +161,38 @@ struct RemindersView: View {
     }
     
     var body: some View {
-        ScrollView(showsIndicators: false) {
-                    VStack(spacing: 24) {
-                        header
-                        reminderToggle
-                        
-                        Group {
-                            if isRemindersOn {
-                                timeSelectionSection
-                                statusCard
-                                infoSection
-                            } else {
-                                infoSection
-                                if !isRemindersOn {  // Explicit check
-                                    VStack(alignment: .leading, spacing: 16) {
-                                        Image("reminders")
-                                            .resizable()
-                                            .aspectRatio(contentMode: .fit)
-                                            .frame(maxWidth: .infinity)
-                                            .padding(.top, 16)
-                                    }
+        ZStack {
+            Color.black.ignoresSafeArea()
+            
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 24) {
+                    header
+                    reminderToggle
+                    
+                    Group {
+                        if isRemindersOn {
+                            timeSelectionSection
+                            statusCard
+                            infoSection
+                        } else {
+                            infoSection
+                            if !isRemindersOn {
+                                VStack(alignment: .leading, spacing: 16) {
+                                    Image("reminders")
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fit)
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.top, 16)
                                 }
                             }
                         }
-                        
                     }
-                    .padding()
+                    
+                }
+                .padding()
+                .padding(.bottom, 80)
+            }
         }
-        .background(Color(.systemBackground))
         .onAppear(perform: setupInitialState)
         .onChange(of: isRemindersOn, handleReminderToggle)
         .onChange(of: selectedDate, handleDateChange)
@@ -139,9 +213,10 @@ struct RemindersView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Daily Reminders")
                 .font(.system(size: 34, weight: .bold))
+                .foregroundColor(.white)
             Text("Set up gentle daily reminders to make sure you don't forget to purchase any of your groceries")
                 .font(.subheadline)
-                .foregroundColor(Theme.subtitleColor)
+                .foregroundColor(.white.opacity(0.7))
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -154,6 +229,7 @@ struct RemindersView: View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Choose Reminder Time")
                 .font(.headline)
+                .foregroundColor(.white)
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
@@ -163,22 +239,66 @@ struct RemindersView: View {
                             isActive: Calendar.current.compare(time, to: selectedDate, toGranularity: .minute) == .orderedSame
                         )
                         .onTapGesture {
-                            selectedDate = time
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                selectedDate = time
+                            }
                         }
                     }
                     
-                    Button(action: { isEditingTime = true }) {
-                        VStack(spacing: 8) {
-                            Image(systemName: "clock.circle.fill")
-                                .font(.system(size: 24))
-                            Text("Custom")
-                                .font(.headline)
+                    Button(action: { 
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            isEditingTime.toggle()
                         }
-                        .padding()
+                    }) {
+                        VStack(spacing: 12) {
+                            ZStack {
+                                Circle()
+                                    .fill(
+                                        RadialGradient(
+                                            colors: [
+                                                Color.white.opacity(0.2),
+                                                Color.white.opacity(0.1),
+                                                Color.clear
+                                            ],
+                                            center: .center,
+                                            startRadius: 0,
+                                            endRadius: 30
+                                        )
+                                    )
+                                    .frame(width: 56, height: 56)
+                                
+                                Image(systemName: "clock.circle.fill")
+                                    .font(.system(size: 28))
+                                    .foregroundColor(.white.opacity(0.7))
+                            }
+                            
+                            Text("Custom")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundColor(.white)
+                        }
+                        .padding(.vertical, 16)
+                        .padding(.horizontal, 12)
                         .frame(width: 100)
-                        .background(Theme.secondaryColor)
-                        .cornerRadius(12)
+                        .background(.ultraThinMaterial)
+                        .clipShape(Capsule())
+                        .overlay(
+                            Capsule()
+                                .strokeBorder(
+                                    LinearGradient(
+                                        colors: [
+                                            Color.white.opacity(0.3),
+                                            Color.white.opacity(0.1)
+                                        ],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    ),
+                                    lineWidth: 1
+                                )
+                        )
+                        .shadow(color: Color.black.opacity(0.2), radius: 12, x: 0, y: 4)
+                        .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
                     }
+                    .buttonStyle(.plain)
                 }
             }
             
@@ -186,53 +306,157 @@ struct RemindersView: View {
                 DatePicker("Select Time", selection: $selectedDate, displayedComponents: .hourAndMinute)
                     .datePickerStyle(.wheel)
                     .padding()
-                    .background(Theme.secondaryColor)
-                    .cornerRadius(12)
+                    .background(.ultraThinMaterial)
+                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20)
+                            .strokeBorder(
+                                LinearGradient(
+                                    colors: [
+                                        Color.white.opacity(0.3),
+                                        Color.white.opacity(0.1)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1
+                            )
+                    )
+                    .shadow(color: Color.black.opacity(0.2), radius: 12, x: 0, y: 4)
+                    .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
             }
         }
     }
     
     private var statusCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Image(systemName: "bell.and.waves.left.and.right.fill")
-                    .foregroundColor(Theme.primaryColor)
+                ZStack {
+                    Circle()
+                        .fill(
+                            RadialGradient(
+                                colors: [
+                                    Color.purple.opacity(0.6),
+                                    Color.purple.opacity(0.3),
+                                    Color.clear
+                                ],
+                                center: .center,
+                                startRadius: 0,
+                                endRadius: 15
+                            )
+                        )
+                        .frame(width: 32, height: 32)
+                    
+                    Image(systemName: "bell.and.waves.left.and.right.fill")
+                        .font(.system(size: 16))
+                        .foregroundColor(.white)
+                }
+                
                 Text("Current Schedule")
                     .font(.headline)
-                Spacer()
-                Text("Active")
-                    .font(.caption)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Theme.primaryColor)
                     .foregroundColor(.white)
-                    .cornerRadius(8)
+                
+                Spacer()
+                
+                Text("Active")
+                    .font(.caption.weight(.semibold))
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(
+                        LinearGradient(
+                            colors: [
+                                Color.purple,
+                                Color.purple.opacity(0.8)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .foregroundColor(.white)
+                    .clipShape(Capsule())
             }
             
             Text("Daily reminder scheduled for \(formattedTime)")
                 .font(.subheadline)
+                .foregroundColor(.white.opacity(0.9))
             
             Text("Last modified: \(Date(timeIntervalSince1970: lastModified).formatted(.relative(presentation: .named)))")
                 .font(.caption)
-                .foregroundColor(Theme.subtitleColor)
+                .foregroundColor(.white.opacity(0.6))
         }
         .padding()
-        .background(Theme.secondaryColor)
-        .cornerRadius(15)
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [
+                            Color.white.opacity(0.3),
+                            Color.white.opacity(0.1)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
+        )
+        .shadow(color: Color.purple.opacity(0.3), radius: 12, x: 0, y: 4)
+        .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
     }
     
     private var infoSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("About Daily Reminders")
-                .font(.headline)
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                ZStack {
+                    Circle()
+                        .fill(
+                            RadialGradient(
+                                colors: [
+                                    Color.blue.opacity(0.6),
+                                    Color.blue.opacity(0.3),
+                                    Color.clear
+                                ],
+                                center: .center,
+                                startRadius: 0,
+                                endRadius: 15
+                            )
+                        )
+                        .frame(width: 32, height: 32)
+                    
+                    Image(systemName: "info.circle.fill")
+                        .font(.system(size: 16))
+                        .foregroundColor(.white)
+                }
+                
+                Text("About Daily Reminders")
+                    .font(.headline)
+                    .foregroundColor(.white)
+            }
             
             Text("This app helps you stay on top of grocery shopping with gentle reminders, keeping your routine organized and mindful.")
                 .font(.subheadline)
-                .foregroundColor(Theme.subtitleColor)
+                .foregroundColor(.white.opacity(0.8))
         }
         .padding()
-        .background(Theme.secondaryColor)
-        .cornerRadius(15)
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [
+                            Color.white.opacity(0.3),
+                            Color.white.opacity(0.1)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
+        )
+        .shadow(color: Color.black.opacity(0.2), radius: 12, x: 0, y: 4)
+        .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
     }
 
     private var imageSection: some View {
