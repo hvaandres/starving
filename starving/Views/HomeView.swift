@@ -117,7 +117,6 @@ struct FloatingTabBar: View {
                             action: {
                                 withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                                     selectedTab = tab
-                                    lensOffset = CGFloat(index) * 46 // Position lens at selected tab
                                 }
                                 let generator = UIImpactFeedbackGenerator(style: .light)
                                 generator.impactOccurred()
@@ -185,11 +184,14 @@ struct FloatingTabBar: View {
     }
     
     private func isMagnified(index: Int) -> Bool {
+        // Only magnify when lens is being dragged
+        guard abs(dragState) > 0 || isDraggingLens else { return false }
+        
         let currentLensPosition = lensOffset + dragState
         let tabWidth: CGFloat = 46
         let tabCenter = CGFloat(index) * tabWidth
         let distance = abs(currentLensPosition - tabCenter)
-        return distance < tabWidth / 2
+        return distance < tabWidth * 0.6
     }
 }
 
@@ -200,27 +202,27 @@ struct MagnifyingLens: View {
             .fill(
                 LinearGradient(
                     colors: [
-                        Color.white.opacity(0.3),
-                        Color.white.opacity(0.15),
+                        Color.white.opacity(0.25),
+                        Color.white.opacity(0.12),
                         Color.clear
                     ],
-                    startPoint: .top,
-                    endPoint: .bottom
+                    startPoint: .leading,
+                    endPoint: .trailing
                 )
             )
-            .frame(width: 50, height: 60)
+            .frame(width: 65, height: 48)
             .overlay(
                 Ellipse()
                     .strokeBorder(
                         LinearGradient(
                             colors: [
-                                Color.white.opacity(0.6),
-                                Color.white.opacity(0.3)
+                                Color.white.opacity(0.7),
+                                Color.white.opacity(0.4)
                             ],
-                            startPoint: .top,
-                            endPoint: .bottom
+                            startPoint: .leading,
+                            endPoint: .trailing
                         ),
-                        lineWidth: 2
+                        lineWidth: 2.5
                     )
             )
             .overlay(
@@ -229,18 +231,18 @@ struct MagnifyingLens: View {
                     .fill(
                         RadialGradient(
                             colors: [
-                                Color.white.opacity(0.4),
+                                Color.white.opacity(0.5),
                                 Color.clear
                             ],
-                            center: .init(x: 0.3, y: 0.3),
-                            startRadius: 5,
-                            endRadius: 25
+                            center: .init(x: 0.35, y: 0.35),
+                            startRadius: 8,
+                            endRadius: 30
                         )
                     )
-                    .padding(4)
+                    .padding(5)
             )
-            .shadow(color: Color.white.opacity(0.5), radius: 8, x: 0, y: 0)
-            .shadow(color: Color.black.opacity(0.2), radius: 12, x: 0, y: 6)
+            .shadow(color: Color.white.opacity(0.6), radius: 10, x: 0, y: 0)
+            .shadow(color: Color.black.opacity(0.25), radius: 15, x: 0, y: 8)
     }
 }
 
@@ -260,9 +262,8 @@ struct TabBarButton: View {
             Image(systemName: tab.iconName)
                 .font(.system(size: 22, weight: isSelected ? .semibold : .regular))
                 .foregroundColor(isSelected ? tab.color : .white.opacity(0.6))
-                .scaleEffect(isPressed ? 0.85 : (isMagnified ? 1.5 : (isHovered ? 1.15 : 1.0)))
-                .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isMagnified)
-                .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isHovered)
+                .scaleEffect(isPressed ? 0.85 : (isMagnified ? 1.6 : 1.0))
+                .animation(.spring(response: 0.25, dampingFraction: 0.65), value: isMagnified)
                 .animation(.spring(response: 0.2, dampingFraction: 0.6), value: isPressed)
         }
         .buttonStyle(PlainButtonStyle())
