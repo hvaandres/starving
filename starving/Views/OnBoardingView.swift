@@ -2,55 +2,54 @@ import SwiftUI
 
 struct OnBoardingView: View {
     @Binding var hasCompletedOnboarding: Bool
+    @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
-        VStack {
-            LogoView()
-                .frame(height: UIScreen.main.bounds.height * 0.5)
+        ZStack {
+            // Black background
+            Color.black
+                .ignoresSafeArea()
             
-            VStack {
-                WelcomeContentView()
+            VStack(spacing: 0) {
+                Spacer()
                 
-                Spacer(minLength: 20) // Fixed space between text and button
+                // Icon
+                Image(systemName: "cart.fill")
+                    .font(.system(size: 80))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [Color.accentColor, Color.accentColor.opacity(0.7)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .padding(.bottom, 40)
                 
+                // Title and description
+                VStack(spacing: 16) {
+                    Text("Welcome to Starving")
+                        .font(.system(size: 34, weight: .bold))
+                        .foregroundColor(.white)
+                    
+                    Text("Stay organized with your grocery lists. Never forget what you need.")
+                        .font(.body)
+                        .foregroundColor(.white.opacity(0.7))
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 40)
+                }
+                .padding(.bottom, 60)
+                
+                // Get started button
                 GetStartedButton(action: completeOnboarding)
-                    .padding(.bottom, 150) // Adds a little space at the bottom
+                
+                Spacer()
             }
-            .frame(maxHeight: .infinity) // Makes ContentView and button stretch to fill space
         }
-        .ignoresSafeArea()
         .navigationBarHidden(true)
     }
     
     private func completeOnboarding() {
         hasCompletedOnboarding = true
-    }
-}
-
-struct LogoView: View {
-    var body: some View {
-        Image("starving-black")
-            .resizable()
-            .scaledToFit() // Ensures image is fully visible without distortion
-            .ignoresSafeArea(edges: .top) // Removes white space at the top
-    }
-}
-
-struct WelcomeContentView: View {
-    var body: some View {
-        VStack(spacing: 20) {
-            Spacer()
-            Text("Welcome to Starving!")
-                .font(.title.bold())
-                .foregroundColor(.primary)
-    
-            Text("Stay organized and keep your family happy! Create, manage, and check off grocery lists with ease—simplifying your shopping in one smart app.")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-            Spacer() // Ensures the text is more centered vertically
-        }
-        .padding(.horizontal, 40)
     }
 }
 
@@ -60,9 +59,28 @@ struct GetStartedButton: View {
     var body: some View {
         Button(action: action) {
             Text("Get Started")
-                .frame(maxWidth: .infinity, minHeight: 20) // Makes the button content fill the area
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(
+                    Capsule()
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.accentColor, Color.accentColor.opacity(0.85)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .overlay(
+                            Capsule()
+                                .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                        )
+                        .shadow(color: Color.accentColor.opacity(0.4), radius: 12, x: 0, y: 6)
+                )
         }
-        .primaryButtonStyle()
+        .padding(.horizontal, 20)
+        .buttonStyle(PlainButtonStyle())
     }
 }
 
