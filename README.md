@@ -16,12 +16,21 @@ Starving is your ultimate grocery shopping companion, designed to simplify your 
 For complete setup instructions including Firebase configuration, see [SETUP.md](SETUP.md).
 
 ## ScreenShoots
-<p align="center"> <img src="https://github.com/user-attachments/assets/722d7d6e-9056-4070-9e86-632d01c04702" width="300">  <img src="https://github.com/user-attachments/assets/21601411-96eb-483c-a9e9-788831508fb2" width="300"> </p>
-<p align="center"> <img src="https://github.com/user-attachments/assets/8f709ec6-31e9-4474-a130-034c06e82272" width="300"> <img src="https://github.com/user-attachments/assets/df5e0f7a-eeda-4d7e-8d35-104d30d4ebf5" width="300"> </p>
 
-<p align="center"> <img src="https://github.com/user-attachments/assets/57f4457d-9143-4988-91c2-d45206d13eed" width="300"> <img src="https://github.com/user-attachments/assets/6af0ba5d-340e-4a55-93cf-96a33ef42072"width="300"> </p>
+<div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 16px;">
 
-<p align="center"> <img src="https://github.com/user-attachments/assets/b92dc940-c89b-4faf-a5e8-02a7486cf322" width="300"> <img src="https://github.com/user-attachments/assets/1dcab437-74f2-410d-b504-f9b838ef5a93"width="300"> </p>
+  <img src="https://github.com/user-attachments/assets/1dae48cd-d10f-4f10-9c4f-746def4564e9" width="300" />
+  <img src="https://github.com/user-attachments/assets/dc2a9a73-0b66-460f-9b5a-41729935b168" width="300" />
+
+  <img src="https://github.com/user-attachments/assets/837db993-d327-49ed-a904-d59ca0af04bf" width="300" />
+  <img src="https://github.com/user-attachments/assets/2337dfce-9422-4231-9185-4435c2d44b15" width="300" />
+
+  <img src="https://github.com/user-attachments/assets/aa72f3ec-f2e8-4873-912f-8109868cdace" width="300" />
+  <img src="https://github.com/user-attachments/assets/3d0ad9a8-dfc4-4a00-898f-c06a19ec554b" width="300" />
+
+</div>
+
+
 
 ## License
 © 2025 Alan Andres Haro. All rights reserved.
