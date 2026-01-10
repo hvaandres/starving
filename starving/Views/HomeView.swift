@@ -100,68 +100,47 @@ struct FloatingTabBar: View {
     let tabs: [Tab] = [.today, .items, .reminders, .settings]
     
     var body: some View {
-        ZStack {
-            // Enhanced glass container with shimmer
+        HStack(spacing: 24) {
+            ForEach(tabs, id: \.self) { tab in
+                TabBarButton(
+                    tab: tab,
+                    isSelected: selectedTab == tab,
+                    isHovered: hoveredTab == tab,
+                    action: {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            selectedTab = tab
+                        }
+                        let generator = UIImpactFeedbackGenerator(style: .light)
+                        generator.impactOccurred()
+                    },
+                    onHover: { hovering in
+                        hoveredTab = hovering ? tab : nil
+                    }
+                )
+            }
+        }
+        .padding(.vertical, 10)
+        .padding(.horizontal, 16)
+        .background(
             Capsule()
                 .fill(.ultraThinMaterial)
+                .opacity(0.95)
+                .shadow(color: Color.black.opacity(0.15), radius: 20, x: 0, y: 10)
                 .overlay(
-                    // Inner shimmer layer
-                    Capsule()
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    Color.white.opacity(0.15),
-                                    Color.clear,
-                                    Color.white.opacity(0.1)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .padding(1)
-                )
-                .overlay(
-                    // Border with glass effect
                     Capsule()
                         .strokeBorder(
                             LinearGradient(
                                 colors: [
-                                    Color.white.opacity(0.4),
-                                    Color.white.opacity(0.15),
-                                    Color.white.opacity(0.3)
+                                    Color.white.opacity(0.3),
+                                    Color.white.opacity(0.1)
                                 ],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             ),
-                            lineWidth: 1.5
+                            lineWidth: 1
                         )
                 )
-                .shadow(color: Color.black.opacity(0.25), radius: 30, x: 0, y: 15)
-                .shadow(color: Color.black.opacity(0.15), radius: 15, x: 0, y: 8)
-            
-            // Tab buttons
-            HStack(spacing: 10) {
-                ForEach(tabs, id: \.self) { tab in
-                    TabBarButton(
-                        tab: tab,
-                        isSelected: selectedTab == tab,
-                        isHovered: hoveredTab == tab,
-                        action: {
-                            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                                selectedTab = tab
-                            }
-                            let generator = UIImpactFeedbackGenerator(style: .medium)
-                            generator.impactOccurred()
-                        },
-                        onHover: { hovering in
-                            hoveredTab = hovering ? tab : nil
-                        }
-                    )
-                }
-            }
-            .padding(.vertical, 6)
-            .padding(.horizontal, 10)
-        }
+        )
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
         .padding(.leading, 20)
         .padding(.bottom, 20)
@@ -177,91 +156,15 @@ struct TabBarButton: View {
     let onHover: (Bool) -> Void
     
     @State private var isPressed = false
-    @State private var glowPulse: CGFloat = 1.0
     
     var body: some View {
         Button(action: action) {
-            ZStack {
-                // Subtle glow background for selected tab
-                if isSelected {
-                    Circle()
-                        .fill(
-                            RadialGradient(
-                                colors: [
-                                    tab.color.opacity(0.3),
-                                    tab.color.opacity(0.15),
-                                    Color.clear
-                                ],
-                                center: .center,
-                                startRadius: 0,
-                                endRadius: 12
-                            )
-                        )
-                        .frame(width: 26, height: 26)
-                        .blur(radius: 3)
-                        .scaleEffect(glowPulse)
-                }
-                
-                // Subtle glass circle behind icon
-                if isSelected {
-                    Circle()
-                        .fill(.ultraThinMaterial)
-                        .frame(width: 24, height: 24)
-                        .overlay(
-                            Circle()
-                                .strokeBorder(
-                                    tab.color.opacity(0.35),
-                                    lineWidth: 1
-                                )
-                        )
-                        .overlay(
-                            // Inner light reflection
-                            Circle()
-                                .fill(
-                                    LinearGradient(
-                                        colors: [
-                                            Color.white.opacity(0.15),
-                                            Color.clear
-                                        ],
-                                        startPoint: .top,
-                                        endPoint: .center
-                                    )
-                                )
-                                .padding(1)
-                        )
-                        .shadow(color: tab.color.opacity(0.2), radius: 4, x: 0, y: 1)
-                }
-                
-                // Subtle glow for hover
-                if isHovered && !isSelected {
-                    Circle()
-                        .fill(
-                            RadialGradient(
-                                colors: [
-                                    tab.color.opacity(0.18),
-                                    tab.color.opacity(0.08),
-                                    Color.clear
-                                ],
-                                center: .center,
-                                startRadius: 0,
-                                endRadius: 12
-                            )
-                        )
-                        .frame(width: 24, height: 24)
-                        .blur(radius: 2)
-                }
-                
-                // Icon
-                Image(systemName: tab.iconName)
-                    .font(.system(size: 16, weight: isSelected ? .semibold : .regular))
-                    .foregroundColor(isSelected ? tab.color : .white.opacity(0.6))
-                    .scaleEffect(isPressed ? 0.85 : (isHovered && !isSelected ? 1.05 : 1.0))
-                    .shadow(color: isSelected ? tab.color.opacity(0.25) : Color.clear, radius: 3, x: 0, y: 1)
-            }
-            .frame(width: 24, height: 24)
-            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isHovered)
-            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isSelected)
-            .animation(.spring(response: 0.2, dampingFraction: 0.6), value: isPressed)
+            Image(systemName: tab.iconName)
+                .font(.system(size: 22, weight: isSelected ? .semibold : .regular))
+                .foregroundColor(isSelected ? tab.color : .white.opacity(0.6))
+                .scaleEffect(isPressed ? 0.85 : (isHovered ? 1.15 : 1.0))
+                .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isHovered)
+                .animation(.spring(response: 0.2, dampingFraction: 0.6), value: isPressed)
         }
         .buttonStyle(PlainButtonStyle())
         .simultaneousGesture(
@@ -275,25 +178,6 @@ struct TabBarButton: View {
                     onHover(false)
                 }
         )
-        .onAppear {
-            if isSelected {
-                startPulseAnimation()
-            }
-        }
-        .onChange(of: isSelected) { newValue in
-            if newValue {
-                startPulseAnimation()
-            }
-        }
-    }
-    
-    private func startPulseAnimation() {
-        withAnimation(
-            .easeInOut(duration: 2.0)
-            .repeatForever(autoreverses: true)
-        ) {
-            glowPulse = 1.08
-        }
     }
 }
 
