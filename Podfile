@@ -8,6 +8,7 @@ target 'starving' do
   # Pods for starving
   pod 'Firebase/Auth'
   pod 'Firebase/Core'
+  pod 'Firebase/Firestore'
   pod 'GoogleSignIn'
 end
 
