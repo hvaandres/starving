@@ -100,49 +100,36 @@ struct FloatingTabBar: View {
     let tabs: [Tab] = [.today, .items, .reminders, .settings]
     
     var body: some View {
-        HStack(spacing: 24) {
+        HStack(spacing: 8) {
             ForEach(tabs, id: \.self) { tab in
                 TabBarButton(
                     tab: tab,
                     isSelected: selectedTab == tab,
-                    isHovered: hoveredTab == tab,
                     action: {
                         withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                             selectedTab = tab
                         }
                         let generator = UIImpactFeedbackGenerator(style: .light)
                         generator.impactOccurred()
-                    },
-                    onHover: { hovering in
-                        hoveredTab = hovering ? tab : nil
                     }
                 )
             }
         }
-        .padding(.vertical, 10)
-        .padding(.horizontal, 16)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
         .background(
-            Capsule()
+            RoundedRectangle(cornerRadius: 20)
                 .fill(.ultraThinMaterial)
-                .opacity(0.95)
-                .shadow(color: Color.black.opacity(0.15), radius: 20, x: 0, y: 10)
+                .shadow(color: Color.black.opacity(0.2), radius: 20, x: 0, y: 10)
                 .overlay(
-                    Capsule()
+                    RoundedRectangle(cornerRadius: 20)
                         .strokeBorder(
-                            LinearGradient(
-                                colors: [
-                                    Color.white.opacity(0.3),
-                                    Color.white.opacity(0.1)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 1
+                            Color.white.opacity(0.2),
+                            lineWidth: 0.5
                         )
                 )
         )
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
-        .padding(.leading, 20)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
         .padding(.bottom, 20)
     }
 }
@@ -151,33 +138,26 @@ struct FloatingTabBar: View {
 struct TabBarButton: View {
     let tab: Tab
     let isSelected: Bool
-    let isHovered: Bool
     let action: () -> Void
-    let onHover: (Bool) -> Void
-    
-    @State private var isPressed = false
     
     var body: some View {
         Button(action: action) {
-            Image(systemName: tab.iconName)
-                .font(.system(size: 22, weight: isSelected ? .semibold : .regular))
-                .foregroundColor(isSelected ? tab.color : .white.opacity(0.6))
-                .scaleEffect(isPressed ? 0.85 : (isHovered ? 1.15 : 1.0))
-                .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isHovered)
-                .animation(.spring(response: 0.2, dampingFraction: 0.6), value: isPressed)
+            VStack(spacing: 4) {
+                Image(systemName: tab.iconName)
+                    .font(.system(size: 20, weight: .medium))
+                    .foregroundColor(isSelected ? tab.color : .white.opacity(0.6))
+                
+                Text(tab.label)
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundColor(isSelected ? tab.color : .white.opacity(0.6))
+            }
+            .frame(width: 70, height: 54)
+            .background(
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(isSelected ? tab.color.opacity(0.15) : Color.clear)
+            )
         }
         .buttonStyle(PlainButtonStyle())
-        .simultaneousGesture(
-            DragGesture(minimumDistance: 0)
-                .onChanged { _ in
-                    isPressed = true
-                    onHover(true)
-                }
-                .onEnded { _ in
-                    isPressed = false
-                    onHover(false)
-                }
-        )
     }
 }
 
@@ -189,6 +169,15 @@ extension Tab {
         case .items: return "carrot"
         case .reminders: return "bell.and.waves.left.and.right"
         case .settings: return "gearshape"
+        }
+    }
+    
+    var label: String {
+        switch self {
+        case .today: return "Today"
+        case .items: return "Items"
+        case .reminders: return "Reminders"
+        case .settings: return "Settings"
         }
     }
     
