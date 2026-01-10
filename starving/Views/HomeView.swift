@@ -100,7 +100,7 @@ struct FloatingTabBar: View {
     let tabs: [Tab] = [.today, .items, .reminders, .settings]
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        HStack(spacing: 16) {
             ForEach(tabs, id: \.self) { tab in
                 TabBarButton(
                     tab: tab,
@@ -119,8 +119,8 @@ struct FloatingTabBar: View {
                 )
             }
         }
-        .padding(.vertical, 20)
-        .padding(.horizontal, 12)
+        .padding(.vertical, 12)
+        .padding(.horizontal, 20)
         .background(
             Capsule()
                 .fill(.ultraThinMaterial)
@@ -141,9 +141,9 @@ struct FloatingTabBar: View {
                         )
                 )
         )
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
         .padding(.leading, 20)
-        .padding(.vertical, 100)
+        .padding(.bottom, 20)
     }
 }
 
