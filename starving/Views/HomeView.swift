@@ -159,12 +159,35 @@ struct TabBarButton: View {
     
     var body: some View {
         Button(action: action) {
-            Image(systemName: tab.iconName)
-                .font(.system(size: 22, weight: isSelected ? .semibold : .regular))
-                .foregroundColor(isSelected ? tab.color : .white.opacity(0.6))
-                .scaleEffect(isPressed ? 0.85 : (isHovered ? 1.15 : 1.0))
-                .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isHovered)
-                .animation(.spring(response: 0.2, dampingFraction: 0.6), value: isPressed)
+            ZStack {
+                // Lensing glow effect behind icon
+                if isSelected || isHovered {
+                    Circle()
+                        .fill(
+                            RadialGradient(
+                                colors: [
+                                    tab.color.opacity(isSelected ? 0.4 : 0.2),
+                                    tab.color.opacity(isSelected ? 0.2 : 0.1),
+                                    Color.clear
+                                ],
+                                center: .center,
+                                startRadius: 0,
+                                endRadius: 20
+                            )
+                        )
+                        .frame(width: 40, height: 40)
+                        .blur(radius: 4)
+                }
+                
+                // Icon
+                Image(systemName: tab.iconName)
+                    .font(.system(size: 22, weight: isSelected ? .semibold : .regular))
+                    .foregroundColor(isSelected ? tab.color : .white.opacity(0.6))
+                    .scaleEffect(isPressed ? 0.85 : (isHovered ? 1.15 : 1.0))
+            }
+            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isHovered)
+            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isSelected)
+            .animation(.spring(response: 0.2, dampingFraction: 0.6), value: isPressed)
         }
         .buttonStyle(PlainButtonStyle())
         .simultaneousGesture(

@@ -109,6 +109,7 @@ struct TodayView: View {
                 }
             }
             .padding(.vertical, 8)
+            .padding(.bottom, 100) // Add padding to avoid tab bar overlap
         }
     }
     
@@ -233,7 +234,7 @@ struct TodayView: View {
         }
         .disabled(!allItemsCompleted)
         .padding(.horizontal, 20)
-        .padding(.bottom, 20)
+        .padding(.bottom, 100) // Increased from 20 to 100 to avoid tab bar overlap
     }
     
     // MARK: - Helper Methods

@@ -14,61 +14,51 @@ struct ReminderTimeCard: View {
     let isActive: Bool
     
     var body: some View {
-        VStack(spacing: 12) {
-            ZStack {
-                Circle()
-                    .fill(
-                        RadialGradient(
-                            colors: isActive ? [
-                                Color.purple.opacity(0.6),
-                                Color.purple.opacity(0.3),
-                                Color.clear
-                            ] : [
-                                Color.white.opacity(0.2),
-                                Color.white.opacity(0.1),
-                                Color.clear
-                            ],
-                            center: .center,
-                            startRadius: 0,
-                            endRadius: 30
-                        )
-                    )
-                    .frame(width: 56, height: 56)
-                
-                Image(systemName: "bell.circle.fill")
-                    .font(.system(size: 28))
-                    .foregroundColor(isActive ? .white : .white.opacity(0.7))
-            }
+        VStack(spacing: 10) {
+            // Icon
+            Image(systemName: isActive ? "bell.badge.fill" : "bell")
+                .font(.system(size: 24, weight: .semibold))
+                .foregroundColor(isActive ? Color.orange : .white.opacity(0.6))
             
+            // Time
             Text(time)
-                .font(.subheadline.weight(.semibold))
-                .foregroundColor(.white)
+                .font(.subheadline.weight(isActive ? .semibold : .medium))
+                .foregroundColor(isActive ? .white : .white.opacity(0.7))
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
         }
-        .padding(.vertical, 16)
-        .padding(.horizontal, 12)
-        .frame(width: 100)
-        .background(.ultraThinMaterial)
-        .clipShape(Capsule())
-        .overlay(
-            Capsule()
-                .strokeBorder(
-                    LinearGradient(
-                        colors: [
-                            Color.white.opacity(0.3),
-                            Color.white.opacity(0.1)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
-                    lineWidth: 1
+        .frame(width: 85, height: 85)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .strokeBorder(
+                            isActive ? 
+                                LinearGradient(
+                                    colors: [
+                                        Color.orange.opacity(0.6),
+                                        Color.orange.opacity(0.3)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            :
+                                LinearGradient(
+                                    colors: [
+                                        Color.white.opacity(0.2),
+                                        Color.white.opacity(0.1)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                            lineWidth: isActive ? 2 : 1
+                        )
                 )
         )
-        .shadow(color: isActive ? Color.purple.opacity(0.4) : Color.black.opacity(0.2), radius: 12, x: 0, y: 4)
-        .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+        .shadow(color: isActive ? Color.orange.opacity(0.3) : Color.black.opacity(0.15), radius: 10, x: 0, y: 4)
         .scaleEffect(isActive ? 1.05 : 1.0)
-        .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isActive)
+        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isActive)
     }
 }
 
@@ -83,56 +73,55 @@ struct AnimatedToggle: View {
             }
         }) {
             HStack(spacing: 16) {
-                ZStack {
-                    Circle()
-                        .fill(
-                            RadialGradient(
-                                colors: isOn ? [
-                                    Color.purple.opacity(0.6),
-                                    Color.purple.opacity(0.3),
-                                    Color.clear
-                                ] : [
-                                    Color.white.opacity(0.2),
-                                    Color.white.opacity(0.1),
-                                    Color.clear
-                                ],
-                                center: .center,
-                                startRadius: 0,
-                                endRadius: 20
-                            )
-                        )
-                        .frame(width: 44, height: 44)
-                    
-                    Image(systemName: isOn ? "bell.fill" : "bell.slash.fill")
-                        .font(.system(size: 20, weight: .semibold))
-                        .foregroundColor(.white)
-                }
+                // Icon
+                Image(systemName: isOn ? "bell.badge.fill" : "bell.slash")
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundColor(isOn ? Color.orange : .white.opacity(0.5))
                 
+                // Label
                 Text(label)
                     .font(.headline)
                     .foregroundColor(.white)
                 
                 Spacer()
+                
+                // Toggle indicator
+                ZStack {
+                    Capsule()
+                        .fill(isOn ? Color.orange.opacity(0.3) : Color.white.opacity(0.1))
+                        .frame(width: 50, height: 30)
+                    
+                    Circle()
+                        .fill(.white)
+                        .frame(width: 24, height: 24)
+                        .offset(x: isOn ? 10 : -10)
+                        .shadow(color: Color.black.opacity(0.2), radius: 4, x: 0, y: 2)
+                }
             }
-            .padding()
-            .background(.ultraThinMaterial)
-            .clipShape(Capsule())
-            .overlay(
-                Capsule()
-                    .strokeBorder(
-                        LinearGradient(
-                            colors: [
-                                Color.white.opacity(0.3),
-                                Color.white.opacity(0.1)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 1
+            .padding(.vertical, 16)
+            .padding(.horizontal, 20)
+            .background(
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(.ultraThinMaterial)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20)
+                            .strokeBorder(
+                                LinearGradient(
+                                    colors: isOn ? [
+                                        Color.orange.opacity(0.4),
+                                        Color.orange.opacity(0.2)
+                                    ] : [
+                                        Color.white.opacity(0.2),
+                                        Color.white.opacity(0.1)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: isOn ? 2 : 1
+                            )
                     )
             )
-            .shadow(color: isOn ? Color.purple.opacity(0.3) : Color.black.opacity(0.2), radius: 12, x: 0, y: 4)
-            .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+            .shadow(color: isOn ? Color.orange.opacity(0.25) : Color.black.opacity(0.15), radius: 10, x: 0, y: 4)
         }
         .buttonStyle(.plain)
     }
@@ -211,10 +200,23 @@ struct RemindersView: View {
     
     private var header: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Daily Reminders")
-                .font(.system(size: 34, weight: .bold))
-                .foregroundColor(.white)
-            Text("Set up gentle daily reminders to make sure you don't forget to purchase any of your groceries")
+            HStack(spacing: 12) {
+                Image(systemName: "bell.badge.circle.fill")
+                    .font(.system(size: 36))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [Color.orange, Color.orange.opacity(0.7)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                
+                Text("Daily Reminders")
+                    .font(.system(size: 32, weight: .bold))
+                    .foregroundColor(.white)
+            }
+            
+            Text("Never forget your groceries with gentle daily notifications")
                 .font(.subheadline)
                 .foregroundColor(.white.opacity(0.7))
         }
@@ -250,213 +252,194 @@ struct RemindersView: View {
                             isEditingTime.toggle()
                         }
                     }) {
-                        VStack(spacing: 12) {
-                            ZStack {
-                                Circle()
-                                    .fill(
-                                        RadialGradient(
-                                            colors: [
-                                                Color.white.opacity(0.2),
-                                                Color.white.opacity(0.1),
-                                                Color.clear
-                                            ],
-                                            center: .center,
-                                            startRadius: 0,
-                                            endRadius: 30
-                                        )
-                                    )
-                                    .frame(width: 56, height: 56)
-                                
-                                Image(systemName: "clock.circle.fill")
-                                    .font(.system(size: 28))
-                                    .foregroundColor(.white.opacity(0.7))
-                            }
+                        VStack(spacing: 10) {
+                            Image(systemName: "clock.badge.plus")
+                                .font(.system(size: 24, weight: .semibold))
+                                .foregroundColor(.white.opacity(0.6))
                             
                             Text("Custom")
-                                .font(.subheadline.weight(.semibold))
-                                .foregroundColor(.white)
+                                .font(.subheadline.weight(.medium))
+                                .foregroundColor(.white.opacity(0.7))
                         }
-                        .padding(.vertical, 16)
-                        .padding(.horizontal, 12)
-                        .frame(width: 100)
-                        .background(.ultraThinMaterial)
-                        .clipShape(Capsule())
-                        .overlay(
-                            Capsule()
-                                .strokeBorder(
-                                    LinearGradient(
-                                        colors: [
-                                            Color.white.opacity(0.3),
-                                            Color.white.opacity(0.1)
-                                        ],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    ),
-                                    lineWidth: 1
+                        .frame(width: 85, height: 85)
+                        .background(
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(.ultraThinMaterial)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .strokeBorder(
+                                            LinearGradient(
+                                                colors: [
+                                                    Color.white.opacity(0.2),
+                                                    Color.white.opacity(0.1)
+                                                ],
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
+                                            ),
+                                            lineWidth: 1
+                                        )
                                 )
                         )
-                        .shadow(color: Color.black.opacity(0.2), radius: 12, x: 0, y: 4)
-                        .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+                        .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 4)
                     }
                     .buttonStyle(.plain)
                 }
             }
             
             if isEditingTime {
-                DatePicker("Select Time", selection: $selectedDate, displayedComponents: .hourAndMinute)
-                    .datePickerStyle(.wheel)
-                    .padding()
-                    .background(.ultraThinMaterial)
-                    .clipShape(RoundedRectangle(cornerRadius: 20))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 20)
-                            .strokeBorder(
-                                LinearGradient(
-                                    colors: [
-                                        Color.white.opacity(0.3),
-                                        Color.white.opacity(0.1)
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                ),
-                                lineWidth: 1
-                            )
-                    )
-                    .shadow(color: Color.black.opacity(0.2), radius: 12, x: 0, y: 4)
-                    .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+                VStack(spacing: 0) {
+                    DatePicker("Select Time", selection: $selectedDate, displayedComponents: .hourAndMinute)
+                        .datePickerStyle(.wheel)
+                        .labelsHidden()
+                        .padding()
+                }
+                .background(
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(.ultraThinMaterial)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 20)
+                                .strokeBorder(
+                                    LinearGradient(
+                                        colors: [
+                                            Color.orange.opacity(0.3),
+                                            Color.orange.opacity(0.15)
+                                        ],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    ),
+                                    lineWidth: 1.5
+                                )
+                        )
+                )
+                .shadow(color: Color.orange.opacity(0.15), radius: 12, x: 0, y: 4)
             }
         }
     }
     
     private var statusCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 16) {
             HStack {
-                ZStack {
-                    Circle()
-                        .fill(
-                            RadialGradient(
-                                colors: [
-                                    Color.purple.opacity(0.6),
-                                    Color.purple.opacity(0.3),
-                                    Color.clear
-                                ],
-                                center: .center,
-                                startRadius: 0,
-                                endRadius: 15
-                            )
-                        )
-                        .frame(width: 32, height: 32)
-                    
-                    Image(systemName: "bell.and.waves.left.and.right.fill")
-                        .font(.system(size: 16))
-                        .foregroundColor(.white)
-                }
-                
-                Text("Current Schedule")
-                    .font(.headline)
-                    .foregroundColor(.white)
-                
-                Spacer()
-                
-                Text("Active")
-                    .font(.caption.weight(.semibold))
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 22))
+                    .foregroundStyle(
                         LinearGradient(
-                            colors: [
-                                Color.purple,
-                                Color.purple.opacity(0.8)
-                            ],
+                            colors: [Color.green, Color.green.opacity(0.7)],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
                     )
+                
+                Text("Reminder Active")
+                    .font(.title3.weight(.semibold))
                     .foregroundColor(.white)
-                    .clipShape(Capsule())
+                
+                Spacer()
             }
             
-            Text("Daily reminder scheduled for \(formattedTime)")
-                .font(.subheadline)
-                .foregroundColor(.white.opacity(0.9))
-            
-            Text("Last modified: \(Date(timeIntervalSince1970: lastModified).formatted(.relative(presentation: .named)))")
-                .font(.caption)
-                .foregroundColor(.white.opacity(0.6))
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Image(systemName: "clock.fill")
+                        .font(.system(size: 14))
+                        .foregroundColor(.orange.opacity(0.8))
+                    Text("Daily at \(formattedTime)")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundColor(.white.opacity(0.9))
+                }
+                
+                HStack {
+                    Image(systemName: "calendar")
+                        .font(.system(size: 14))
+                        .foregroundColor(.blue.opacity(0.8))
+                    Text("Last updated \(Date(timeIntervalSince1970: lastModified).formatted(.relative(presentation: .named)))")
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.6))
+                }
+            }
         }
-        .padding()
-        .background(.ultraThinMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 20))
-        .overlay(
+        .padding(20)
+        .background(
             RoundedRectangle(cornerRadius: 20)
-                .strokeBorder(
-                    LinearGradient(
-                        colors: [
-                            Color.white.opacity(0.3),
-                            Color.white.opacity(0.1)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
-                    lineWidth: 1
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .strokeBorder(
+                            LinearGradient(
+                                colors: [
+                                    Color.green.opacity(0.3),
+                                    Color.green.opacity(0.15)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1.5
+                        )
                 )
         )
-        .shadow(color: Color.purple.opacity(0.3), radius: 12, x: 0, y: 4)
-        .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+        .shadow(color: Color.green.opacity(0.15), radius: 10, x: 0, y: 4)
     }
     
     private var infoSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                ZStack {
-                    Circle()
-                        .fill(
-                            RadialGradient(
-                                colors: [
-                                    Color.blue.opacity(0.6),
-                                    Color.blue.opacity(0.3),
-                                    Color.clear
-                                ],
-                                center: .center,
-                                startRadius: 0,
-                                endRadius: 15
-                            )
+            HStack(spacing: 10) {
+                Image(systemName: "lightbulb.circle.fill")
+                    .font(.system(size: 20))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [Color.yellow, Color.orange],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
                         )
-                        .frame(width: 32, height: 32)
-                    
-                    Image(systemName: "info.circle.fill")
-                        .font(.system(size: 16))
-                        .foregroundColor(.white)
-                }
+                    )
                 
-                Text("About Daily Reminders")
+                Text("How It Works")
                     .font(.headline)
                     .foregroundColor(.white)
             }
             
-            Text("This app helps you stay on top of grocery shopping with gentle reminders, keeping your routine organized and mindful.")
+            VStack(alignment: .leading, spacing: 10) {
+                InfoRow(icon: "bell.badge", text: "Get notified daily at your chosen time")
+                InfoRow(icon: "checklist", text: "Never miss items from your shopping list")
+                InfoRow(icon: "moon.zzz", text: "Gentle reminders, not intrusive")
+            }
+        }
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .strokeBorder(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(0.2),
+                                    Color.white.opacity(0.1)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
+                )
+        )
+        .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 4)
+    }
+}
+
+struct InfoRow: View {
+    let icon: String
+    let text: String
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 14))
+                .foregroundColor(.white.opacity(0.7))
+                .frame(width: 20)
+            
+            Text(text)
                 .font(.subheadline)
                 .foregroundColor(.white.opacity(0.8))
         }
-        .padding()
-        .background(.ultraThinMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 20))
-        .overlay(
-            RoundedRectangle(cornerRadius: 20)
-                .strokeBorder(
-                    LinearGradient(
-                        colors: [
-                            Color.white.opacity(0.3),
-                            Color.white.opacity(0.1)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
-                    lineWidth: 1
-                )
-        )
-        .shadow(color: Color.black.opacity(0.2), radius: 12, x: 0, y: 4)
-        .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
     }
 
     private var imageSection: some View {
