@@ -120,6 +120,7 @@ struct FloatingTabBar: View {
                     .frame(width: 48, height: 48)
                 }
             }
+            .clipped()
             .gesture(
                 DragGesture(minimumDistance: 0)
                     .onChanged { value in
@@ -145,6 +146,7 @@ struct FloatingTabBar: View {
             )
         }
         .frame(height: 48)
+        .clipped()
         .padding(.horizontal, 8)
         .padding(.vertical, 8)
         .background(
