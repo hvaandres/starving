@@ -98,21 +98,41 @@ struct FloatingTabBar: View {
     @Binding var hoveredTab: Tab?
     
     let tabs: [Tab] = [.today, .items, .reminders, .settings]
+    @State private var draggedTab: Tab? = nil
     
     var body: some View {
         HStack(spacing: 8) {
             ForEach(tabs, id: \.self) { tab in
-                TabBarButton(
-                    tab: tab,
-                    isSelected: selectedTab == tab,
-                    action: {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                            selectedTab = tab
+                GeometryReader { geometry in
+                    TabBarButton(
+                        tab: tab,
+                        isSelected: selectedTab == tab,
+                        isMagnified: draggedTab == tab,
+                        action: {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                selectedTab = tab
+                            }
+                            let generator = UIImpactFeedbackGenerator(style: .light)
+                            generator.impactOccurred()
                         }
-                        let generator = UIImpactFeedbackGenerator(style: .light)
-                        generator.impactOccurred()
-                    }
-                )
+                    )
+                    .contentShape(Rectangle())
+                    .gesture(
+                        DragGesture(minimumDistance: 0)
+                            .onChanged { value in
+                                let frame = geometry.frame(in: .local)
+                                if frame.contains(value.location) {
+                                    if draggedTab != tab {
+                                        draggedTab = tab
+                                    }
+                                }
+                            }
+                            .onEnded { _ in
+                                draggedTab = nil
+                            }
+                    )
+                }
+                .frame(width: 48, height: 48)
             }
         }
         .padding(.horizontal, 8)
@@ -163,17 +183,16 @@ struct FloatingTabBar: View {
 struct TabBarButton: View {
     let tab: Tab
     let isSelected: Bool
+    let isMagnified: Bool
     let action: () -> Void
-    
-    @State private var isPressed = false
     
     var body: some View {
         Button(action: action) {
             Image(systemName: tab.iconName)
                 .font(.system(size: 22, weight: .medium))
                 .foregroundColor(isSelected ? tab.color : .white.opacity(0.7))
-                .scaleEffect(isPressed ? 1.2 : 1.0)
-                .animation(.spring(response: 0.25, dampingFraction: 0.6), value: isPressed)
+                .scaleEffect(isMagnified ? 1.3 : 1.0)
+                .animation(.spring(response: 0.25, dampingFraction: 0.6), value: isMagnified)
                 .frame(width: 48, height: 48)
                 .background(
                     ZStack {
@@ -197,17 +216,6 @@ struct TabBarButton: View {
                 )
         }
         .buttonStyle(PlainButtonStyle())
-        .simultaneousGesture(
-            DragGesture(minimumDistance: 0)
-                .onChanged { _ in
-                    if !isPressed {
-                        isPressed = true
-                    }
-                }
-                .onEnded { _ in
-                    isPressed = false
-                }
-        )
     }
 }
 
