@@ -99,15 +99,16 @@ struct FloatingTabBar: View {
     
     let tabs: [Tab] = [.today, .items, .reminders, .settings]
     @State private var draggedTab: Tab? = nil
+    @State private var isDragging = false
     
     var body: some View {
-        HStack(spacing: 8) {
-            ForEach(tabs, id: \.self) { tab in
-                GeometryReader { geometry in
+        GeometryReader { containerGeometry in
+            HStack(spacing: 8) {
+                ForEach(Array(tabs.enumerated()), id: \.element) { index, tab in
                     TabBarButton(
                         tab: tab,
                         isSelected: selectedTab == tab,
-                        isMagnified: draggedTab == tab,
+                        isMagnified: draggedTab == tab && isDragging,
                         action: {
                             withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                                 selectedTab = tab
@@ -116,25 +117,34 @@ struct FloatingTabBar: View {
                             generator.impactOccurred()
                         }
                     )
-                    .contentShape(Rectangle())
-                    .gesture(
-                        DragGesture(minimumDistance: 0)
-                            .onChanged { value in
-                                let frame = geometry.frame(in: .local)
-                                if frame.contains(value.location) {
-                                    if draggedTab != tab {
-                                        draggedTab = tab
-                                    }
-                                }
-                            }
-                            .onEnded { _ in
-                                draggedTab = nil
-                            }
-                    )
+                    .frame(width: 48, height: 48)
                 }
-                .frame(width: 48, height: 48)
             }
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { value in
+                        isDragging = true
+                        // Calculate which tab is under the finger
+                        let x = value.location.x - 8 // Account for padding
+                        let tabWidth: CGFloat = 56 // 48 + 8 spacing
+                        let index = Int(x / tabWidth)
+                        
+                        if index >= 0 && index < tabs.count {
+                            let newTab = tabs[index]
+                            if draggedTab != newTab {
+                                draggedTab = newTab
+                                let generator = UISelectionFeedbackGenerator()
+                                generator.selectionChanged()
+                            }
+                        }
+                    }
+                    .onEnded { _ in
+                        isDragging = false
+                        draggedTab = nil
+                    }
+            )
         }
+        .frame(height: 48)
         .padding(.horizontal, 8)
         .padding(.vertical, 8)
         .background(
