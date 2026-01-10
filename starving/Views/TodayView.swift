@@ -35,21 +35,29 @@ struct TodayView: View {
     
     // MARK: - Body
     var body: some View {
-        VStack(spacing: 20) {
-            header
-            messageView
-            
-            if hasItemsToday {
-                itemsList
-                
-                if !currentDay.items.isEmpty {
-                    completeButton
+        ZStack(alignment: .bottom) {
+            VStack(spacing: 0) {
+                // Header section
+                VStack(spacing: 8) {
+                    header
+                    messageView
                 }
-            } else {
-                emptyStateView
+                .padding(.horizontal, 20)
+                .padding(.top, 20)
+                .padding(.bottom, 12)
+                
+                if hasItemsToday {
+                    itemsList
+                } else {
+                    emptyStateView
+                }
+            }
+            
+            // Complete button at bottom
+            if hasItemsToday && !currentDay.items.isEmpty {
+                completeButton
             }
         }
-        .padding()
         .overlay {
             if showConfetti {
                 ConfettiView()
@@ -59,49 +67,99 @@ struct TodayView: View {
     
     // MARK: - View Components
     private var header: some View {
-        Text("My groceries")
-            .font(.largeTitle)
-            .bold()
-            .frame(maxWidth: .infinity, alignment: .leading)
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Today")
+                    .font(.system(size: 32, weight: .bold))
+                let visibleItems = currentDay.items.filter { !$0.isHidden }
+                Text("\(visibleItems.count) item\(visibleItems.count == 1 ? "" : "s")")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
+            Spacer()
+        }
     }
     
     private var messageView: some View {
-        Text("Before you go, double-check your list! Swipe right to remove unpurchased items—they’ll stay in the Items tab.")
+        Text("Select items for today's shopping")
+            .font(.subheadline)
+            .foregroundColor(.secondary)
             .frame(maxWidth: .infinity, alignment: .leading)
     }
     
     private var itemsList: some View {
-        List {
-            ForEach(currentDay.items.filter { !$0.isHidden }) { item in
-                ItemRow(
-                    item: item,
-                    isSelected: completedItems.contains(item.id)
-                ) {
-                    toggleItemCompletion(item)
-                }
-                .swipeActions(edge: .leading) {
-                    Button(role: .destructive) {
-                        removeItem(item)
-                    } label: {
-                        Label("Delete", systemImage: "trash")
+        ScrollView {
+            LazyVStack(spacing: 0) {
+                ForEach(currentDay.items.filter { !$0.isHidden }) { item in
+                    TodayItemRow(
+                        item: item,
+                        isCompleted: completedItems.contains(item.id),
+                        onToggle: { toggleItemCompletion(item) },
+                        onDelete: { removeItem(item) }
+                    )
+                    .padding(.horizontal, 20)
+                    
+                    // Subtle divider
+                    if item.id != currentDay.items.filter({ !$0.isHidden }).last?.id {
+                        Divider()
+                            .padding(.leading, 60)
+                            .padding(.trailing, 20)
+                            .opacity(0.3)
                     }
                 }
             }
+            .padding(.vertical, 8)
         }
-        .listStyle(.plain)
     }
     
     private var emptyStateView: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 24) {
             Spacer()
             
-            Image("today")
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(maxWidth: 300)
+            // Icon with gradient
+            ZStack {
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                Color.blue.opacity(0.15),
+                                Color.blue.opacity(0.05),
+                                Color.clear
+                            ],
+                            center: .center,
+                            startRadius: 30,
+                            endRadius: 80
+                        )
+                    )
+                    .frame(width: 160, height: 160)
+                
+                Image(systemName: "list.clipboard.fill")
+                    .font(.system(size: 64))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [Color.blue, Color.blue.opacity(0.7)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+            }
+            .padding(.bottom, 8)
             
-            ToolTipView(text: "Take a little of your time to check and review your grocery list!")
+            // Title and description
+            VStack(spacing: 12) {
+                Text("No items for today")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                
+                Text("Add items from your groceries list to start shopping")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 40)
+            }
+            .padding(.bottom, 32)
             
+            // Action button
             logButton
             
             Spacer()
@@ -109,29 +167,73 @@ struct TodayView: View {
     }
     
     private var logButton: some View {
-        Button {
+        Button(action: {
             selectedTab = .items
-        } label: {
-            Text("Log")
-                .font(.headline)
-                .primaryButtonStyle()
+        }) {
+            HStack(spacing: 8) {
+                Image(systemName: "square.and.pencil")
+                    .font(.system(size: 15))
+                Text("Add Items")
+                    .font(.system(size: 16, weight: .semibold))
+            }
+            .foregroundColor(.white)
+            .padding(.horizontal, 24)
+            .padding(.vertical, 14)
+            .background(
+                Capsule()
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.blue, Color.blue.opacity(0.85)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .overlay(
+                        Capsule()
+                            .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                    )
+                    .shadow(color: Color.blue.opacity(0.3), radius: 12, x: 0, y: 6)
+            )
         }
-        .padding(.horizontal)
     }
     
     private var completeButton: some View {
-        Button {
+        Button(action: {
             completeList()
-        } label: {
-            Text("List Completed")
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(allItemsCompleted ? Color.green : Color.gray)
-                .foregroundColor(.white)
-                .cornerRadius(10)
+        }) {
+            HStack {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 18))
+                Text("Complete Shopping")
+                    .font(.system(size: 17, weight: .semibold))
+            }
+            .foregroundColor(.white)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 16)
+            .background(
+                Capsule()
+                    .fill(
+                        LinearGradient(
+                            colors: allItemsCompleted 
+                                ? [Color.green, Color.green.opacity(0.85)]
+                                : [Color.secondary.opacity(0.3), Color.secondary.opacity(0.2)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .overlay(
+                        Capsule()
+                            .stroke(
+                                Color.white.opacity(allItemsCompleted ? 0.3 : 0.15),
+                                lineWidth: 1
+                            )
+                    )
+                    .shadow(color: allItemsCompleted ? Color.green.opacity(0.3) : Color.black.opacity(0.1), radius: 12, x: 0, y: 6)
+            )
         }
         .disabled(!allItemsCompleted)
-        .padding(.horizontal)
+        .padding(.horizontal, 20)
+        .padding(.bottom, 20)
     }
     
     // MARK: - Helper Methods
@@ -172,40 +274,332 @@ struct TodayView: View {
     }
 }
 
-// MARK: - Confetti View
+// MARK: - Enhanced Confetti View
 struct ConfettiView: View {
-    @State private var isAnimating = false
+    @State private var particles: [ConfettiParticle] = []
+    @State private var explosionTriggered = false
     
     var body: some View {
-        GeometryReader { geometry in
-            ForEach(0..<50) { _ in
-                Circle()
-                    .fill(Color.random)
-                    .frame(width: 10, height: 10)
-                    .position(
-                        x: .random(in: 0...geometry.size.width),
-                        y: isAnimating ? geometry.size.height + 100 : -100
+        ZStack {
+            // Success glow burst
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [
+                            Color.green.opacity(explosionTriggered ? 0 : 0.6),
+                            Color.green.opacity(0)
+                        ],
+                        center: .center,
+                        startRadius: 0,
+                        endRadius: explosionTriggered ? 500 : 50
                     )
-                    .animation(
-                        Animation.linear(duration: .random(in: 2...4))
-                            .repeatForever(autoreverses: false),
-                        value: isAnimating
-                    )
+                )
+                .scaleEffect(explosionTriggered ? 3 : 0.5)
+                .opacity(explosionTriggered ? 0 : 1)
+                .animation(.easeOut(duration: 0.8), value: explosionTriggered)
+                .allowsHitTesting(false)
+            
+            // Confetti particles
+            ForEach(particles) { particle in
+                ParticleView(particle: particle)
             }
         }
+        .ignoresSafeArea()
         .onAppear {
-            isAnimating = true
+            generateParticles()
+            withAnimation {
+                explosionTriggered = true
+            }
+        }
+    }
+    
+    private func generateParticles() {
+        particles = (0..<100).map { index in
+            ConfettiParticle(
+                id: index,
+                shape: ConfettiShape.allCases.randomElement()!,
+                color: ConfettiColor.allCases.randomElement()!.color,
+                size: CGFloat.random(in: 8...16),
+                startX: CGFloat.random(in: -200...200),
+                startY: CGFloat.random(in: -800...(-400)),
+                velocityX: CGFloat.random(in: -200...200),
+                velocityY: CGFloat.random(in: 400...800),
+                rotation: CGFloat.random(in: 0...360),
+                rotationSpeed: CGFloat.random(in: -720...720),
+                delay: Double.random(in: 0...0.5)
+            )
         }
     }
 }
 
-// MARK: - Color Extension
-extension Color {
-    static var random: Color {
-        Color(
-            red: .random(in: 0...1),
-            green: .random(in: 0...1),
-            blue: .random(in: 0...1)
+// MARK: - Confetti Particle Model
+struct ConfettiParticle: Identifiable {
+    let id: Int
+    let shape: ConfettiShape
+    let color: Color
+    let size: CGFloat
+    let startX: CGFloat
+    let startY: CGFloat
+    let velocityX: CGFloat
+    let velocityY: CGFloat
+    let rotation: CGFloat
+    let rotationSpeed: CGFloat
+    let delay: Double
+}
+
+enum ConfettiShape: CaseIterable {
+    case circle, square, triangle, star, heart
+}
+
+enum ConfettiColor: CaseIterable {
+    case red, orange, yellow, green, blue, purple, pink
+    
+    var color: Color {
+        switch self {
+        case .red: return .red
+        case .orange: return .orange
+        case .yellow: return .yellow
+        case .green: return .green
+        case .blue: return .blue
+        case .purple: return .purple
+        case .pink: return .pink
+        }
+    }
+}
+
+// MARK: - Particle View
+struct ParticleView: View {
+    let particle: ConfettiParticle
+    @State private var offsetX: CGFloat = 0
+    @State private var offsetY: CGFloat = 0
+    @State private var rotation: CGFloat = 0
+    @State private var opacity: Double = 1
+    @State private var scale: CGFloat = 1
+    
+    var body: some View {
+        GeometryReader { geometry in
+            Group {
+                switch particle.shape {
+                case .circle:
+                    Circle()
+                        .fill(particle.color)
+                case .square:
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(particle.color)
+                case .triangle:
+                    Triangle()
+                        .fill(particle.color)
+                case .star:
+                    Star()
+                        .fill(particle.color)
+                case .heart:
+                    Heart()
+                        .fill(particle.color)
+                }
+            }
+            .frame(width: particle.size, height: particle.size)
+            .rotationEffect(.degrees(rotation))
+            .scaleEffect(scale)
+            .opacity(opacity)
+            .position(
+                x: geometry.size.width / 2 + offsetX,
+                y: geometry.size.height / 2 + offsetY
+            )
+            .shadow(color: particle.color.opacity(0.6), radius: 4, x: 0, y: 2)
+            .onAppear {
+                animateParticle()
+            }
+        }
+    }
+    
+    private func animateParticle() {
+        // Initial position at top of screen
+        offsetX = particle.startX
+        offsetY = particle.startY
+        rotation = particle.rotation
+        
+        // Physics-based animation with gravity falling from top
+        withAnimation(
+            .timingCurve(0.25, 0.1, 0.25, 1, duration: 3.5)
+            .delay(particle.delay)
+        ) {
+            // Horizontal movement (drifting left/right as it falls)
+            offsetX = particle.startX + particle.velocityX * 0.6
+            
+            // Vertical movement (falls down from top to bottom)
+            offsetY = particle.startY + particle.velocityY * 2.5
+            
+            // Rotation
+            rotation = particle.rotation + particle.rotationSpeed * 3
+            
+            // Fade out near the end
+            opacity = 0
+        }
+        
+        // Scale pulse at the beginning
+        withAnimation(
+            .spring(response: 0.3, dampingFraction: 0.5)
+            .delay(particle.delay)
+        ) {
+            scale = 1.3
+        }
+        
+        withAnimation(
+            .easeOut(duration: 0.4)
+            .delay(particle.delay + 0.2)
+        ) {
+            scale = 1.0
+        }
+    }
+}
+
+// MARK: - Custom Shapes
+struct Triangle: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.midX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
+        path.closeSubpath()
+        return path
+    }
+}
+
+struct Star: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        let center = CGPoint(x: rect.midX, y: rect.midY)
+        let outerRadius = min(rect.width, rect.height) / 2
+        let innerRadius = outerRadius * 0.4
+        let angle = CGFloat.pi / 5
+        
+        for i in 0..<10 {
+            let radius = i.isMultiple(of: 2) ? outerRadius : innerRadius
+            let x = center.x + radius * cos(CGFloat(i) * angle - CGFloat.pi / 2)
+            let y = center.y + radius * sin(CGFloat(i) * angle - CGFloat.pi / 2)
+            
+            if i == 0 {
+                path.move(to: CGPoint(x: x, y: y))
+            } else {
+                path.addLine(to: CGPoint(x: x, y: y))
+            }
+        }
+        path.closeSubpath()
+        return path
+    }
+}
+
+struct Heart: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        let width = rect.width
+        let height = rect.height
+        
+        path.move(to: CGPoint(x: width * 0.5, y: height * 0.3))
+        path.addCurve(
+            to: CGPoint(x: width * 0.1, y: height * 0.2),
+            control1: CGPoint(x: width * 0.5, y: height * 0.15),
+            control2: CGPoint(x: width * 0.2, y: height * 0.05)
         )
+        path.addArc(
+            center: CGPoint(x: width * 0.2, y: height * 0.3),
+            radius: width * 0.15,
+            startAngle: .degrees(225),
+            endAngle: .degrees(45),
+            clockwise: false
+        )
+        path.addLine(to: CGPoint(x: width * 0.5, y: height * 0.9))
+        path.addLine(to: CGPoint(x: width * 0.8, y: height * 0.45))
+        path.addArc(
+            center: CGPoint(x: width * 0.8, y: height * 0.3),
+            radius: width * 0.15,
+            startAngle: .degrees(135),
+            endAngle: .degrees(315),
+            clockwise: false
+        )
+        path.addCurve(
+            to: CGPoint(x: width * 0.5, y: height * 0.3),
+            control1: CGPoint(x: width * 0.8, y: height * 0.05),
+            control2: CGPoint(x: width * 0.5, y: height * 0.15)
+        )
+        return path
+    }
+}
+
+// MARK: - Today Item Row
+struct TodayItemRow: View {
+    let item: Item
+    let isCompleted: Bool
+    let onToggle: () -> Void
+    let onDelete: () -> Void
+    
+    @State private var isPressed = false
+    
+    var body: some View {
+        HStack(spacing: 16) {
+            // Checkbox button
+            Button(action: {
+                let generator = UIImpactFeedbackGenerator(style: .light)
+                generator.impactOccurred()
+                onToggle()
+            }) {
+                ZStack {
+                    Circle()
+                        .fill(
+                            isCompleted 
+                                ? LinearGradient(
+                                    colors: [Color.blue, Color.blue.opacity(0.8)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                                : LinearGradient(
+                                    colors: [Color.secondary.opacity(0.1), Color.secondary.opacity(0.05)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                        )
+                        .frame(width: 28, height: 28)
+                        .overlay(
+                            Circle()
+                                .stroke(
+                                    isCompleted ? Color.blue.opacity(0.5) : Color.secondary.opacity(0.3),
+                                    lineWidth: 2
+                                )
+                        )
+                    
+                    if isCompleted {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(.white)
+                            .transition(.scale.combined(with: .opacity))
+                    }
+                }
+                .scaleEffect(isPressed ? 0.9 : 1.0)
+                .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isPressed)
+                .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isCompleted)
+            }
+            .buttonStyle(PlainButtonStyle())
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { _ in isPressed = true }
+                    .onEnded { _ in isPressed = false }
+            )
+            
+            // Item title
+            Text(item.title)
+                .font(.system(size: 17))
+                .foregroundColor(isCompleted ? .secondary : .primary)
+                .strikethrough(isCompleted, color: .secondary)
+                .animation(.easeInOut(duration: 0.2), value: isCompleted)
+            
+            Spacer()
+        }
+        .padding(.vertical, 12)
+        .contentShape(Rectangle())
+        .swipeActions(edge: .leading) {
+            Button(role: .destructive, action: onDelete) {
+                Label("Delete", systemImage: "trash")
+            }
+        }
     }
 }
