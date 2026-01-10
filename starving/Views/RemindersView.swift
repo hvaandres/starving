@@ -423,25 +423,7 @@ struct RemindersView: View {
         )
         .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 4)
     }
-}
-
-struct InfoRow: View {
-    let icon: String
-    let text: String
     
-    var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: icon)
-                .font(.system(size: 14))
-                .foregroundColor(.white.opacity(0.7))
-                .frame(width: 20)
-            
-            Text(text)
-                .font(.subheadline)
-                .foregroundColor(.white.opacity(0.8))
-        }
-    }
-
     private var imageSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             Image("reminders")
@@ -451,6 +433,7 @@ struct InfoRow: View {
                 .padding(.top, 16)
         }
     }
+    
     // MARK: - Helper Functions
     
     private func setupInitialState() {
@@ -541,6 +524,24 @@ struct InfoRow: View {
             if let error = error {
                 print("Error scheduling notification: \(error.localizedDescription)")
             }
+        }
+    }
+}
+
+struct InfoRow: View {
+    let icon: String
+    let text: String
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 14))
+                .foregroundColor(.white.opacity(0.7))
+                .frame(width: 20)
+            
+            Text(text)
+                .font(.subheadline)
+                .foregroundColor(.white.opacity(0.8))
         }
     }
 }
