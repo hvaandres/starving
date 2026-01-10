@@ -14,25 +14,25 @@ struct ReminderTimeCard: View {
     let isActive: Bool
     
     var body: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 8) {
             // Icon
             Image(systemName: isActive ? "bell.badge.fill" : "bell")
-                .font(.system(size: 24, weight: .semibold))
+                .font(.system(size: 20, weight: .semibold))
                 .foregroundColor(isActive ? Color.orange : .white.opacity(0.6))
             
             // Time
             Text(time)
-                .font(.subheadline.weight(isActive ? .semibold : .medium))
+                .font(.caption.weight(isActive ? .semibold : .medium))
                 .foregroundColor(isActive ? .white : .white.opacity(0.7))
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
         }
-        .frame(width: 85, height: 85)
+        .frame(width: 70, height: 70)
         .background(
-            RoundedRectangle(cornerRadius: 20)
+            RoundedRectangle(cornerRadius: 16)
                 .fill(.ultraThinMaterial)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 20)
+                    RoundedRectangle(cornerRadius: 16)
                         .strokeBorder(
                             isActive ? 
                                 LinearGradient(
@@ -56,7 +56,7 @@ struct ReminderTimeCard: View {
                         )
                 )
         )
-        .shadow(color: isActive ? Color.orange.opacity(0.3) : Color.black.opacity(0.15), radius: 10, x: 0, y: 4)
+        .shadow(color: isActive ? Color.orange.opacity(0.3) : Color.black.opacity(0.15), radius: 8, x: 0, y: 3)
         .scaleEffect(isActive ? 1.05 : 1.0)
         .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isActive)
     }
@@ -252,21 +252,21 @@ struct RemindersView: View {
                             isEditingTime.toggle()
                         }
                     }) {
-                        VStack(spacing: 10) {
+                        VStack(spacing: 8) {
                             Image(systemName: "clock.badge.plus")
-                                .font(.system(size: 24, weight: .semibold))
+                                .font(.system(size: 20, weight: .semibold))
                                 .foregroundColor(.white.opacity(0.6))
                             
                             Text("Custom")
-                                .font(.subheadline.weight(.medium))
+                                .font(.caption.weight(.medium))
                                 .foregroundColor(.white.opacity(0.7))
                         }
-                        .frame(width: 85, height: 85)
+                        .frame(width: 70, height: 70)
                         .background(
-                            RoundedRectangle(cornerRadius: 20)
+                            RoundedRectangle(cornerRadius: 16)
                                 .fill(.ultraThinMaterial)
                                 .overlay(
-                                    RoundedRectangle(cornerRadius: 20)
+                                    RoundedRectangle(cornerRadius: 16)
                                         .strokeBorder(
                                             LinearGradient(
                                                 colors: [
@@ -280,7 +280,7 @@ struct RemindersView: View {
                                         )
                                 )
                         )
-                        .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 4)
+                        .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 3)
                     }
                     .buttonStyle(.plain)
                 }
