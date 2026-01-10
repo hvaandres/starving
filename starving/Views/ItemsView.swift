@@ -8,9 +8,11 @@ struct ItemsView: View {
     @Query(filter: Day.currentDayPredicate(), sort: \.date) private var today: [Day]
     @Query(filter: #Predicate<Item> { $0.isHidden == false }, sort: [SortDescriptor(\Item.title, order: .forward)]) private var items: [Item]
     
-    @State private var showAddView: Bool = false
+    @State private var showAddInput: Bool = false
+    @State private var newItemTitle: String = ""
     @State private var errorMessage: String? = nil
     @State private var showError: Bool = false
+    @FocusState private var isInputFocused: Bool
     
     // MARK: - View
     var body: some View {
@@ -25,6 +27,15 @@ struct ItemsView: View {
                 .padding(.top, 20)
                 .padding(.bottom, 12)
                 
+                // Inline add input
+                if showAddInput {
+                    addInputField
+                        .transition(.asymmetric(
+                            insertion: .move(edge: .top).combined(with: .opacity),
+                            removal: .move(edge: .top).combined(with: .opacity)
+                        ))
+                }
+                
                 if items.isEmpty {
                     emptyStateView
                 } else {
@@ -36,10 +47,6 @@ struct ItemsView: View {
             if !items.isEmpty {
                 floatingAddButton
             }
-        }
-        .sheet(isPresented: $showAddView) {
-            AddItemView()
-                .presentationDetents([.fraction(0.3)])
         }
         .alert("Error", isPresented: $showError, presenting: errorMessage) { _ in
             Button("OK", role: .cancel) {}
@@ -70,6 +77,105 @@ struct ItemsView: View {
             .font(.subheadline)
             .foregroundColor(.secondary)
             .frame(maxWidth: .infinity, alignment: .leading)
+    }
+    
+    private var addInputField: some View {
+        HStack(spacing: 12) {
+            // Input field
+            HStack(spacing: 12) {
+                Image(systemName: "cart.badge.plus")
+                    .font(.system(size: 18))
+                    .foregroundColor(.green)
+                
+                TextField("Add grocery item...", text: $newItemTitle)
+                    .font(.system(size: 16))
+                    .focused($isInputFocused)
+                    .submitLabel(.done)
+                    .onSubmit {
+                        addNewItem()
+                    }
+                
+                if !newItemTitle.isEmpty {
+                    Button(action: { 
+                        newItemTitle = ""
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 16))
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(.ultraThinMaterial)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .strokeBorder(
+                                LinearGradient(
+                                    colors: [
+                                        Color.green.opacity(0.4),
+                                        Color.green.opacity(0.2)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 2
+                            )
+                    )
+            )
+            .shadow(color: Color.green.opacity(0.15), radius: 8, x: 0, y: 4)
+            
+            // Action buttons
+            HStack(spacing: 8) {
+                // Add button
+                Button(action: { addNewItem() }) {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white)
+                        .frame(width: 44, height: 44)
+                        .background(
+                            Circle()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [Color.green, Color.green.opacity(0.85)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                        )
+                        .shadow(color: Color.green.opacity(0.3), radius: 8, x: 0, y: 4)
+                }
+                .disabled(newItemTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                .opacity(newItemTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.5 : 1.0)
+                
+                // Cancel button
+                Button(action: { 
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        showAddInput = false
+                        newItemTitle = ""
+                        isInputFocused = false
+                    }
+                }) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.secondary)
+                        .frame(width: 44, height: 44)
+                        .background(
+                            Circle()
+                                .fill(.ultraThinMaterial)
+                                .overlay(
+                                    Circle()
+                                        .strokeBorder(Color.white.opacity(0.2), lineWidth: 1)
+                                )
+                        )
+                        .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+                }
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.bottom, 12)
     }
     
     private var emptyStateView: some View {
@@ -117,7 +223,14 @@ struct ItemsView: View {
             }
             .padding(.bottom, 32)
             
-            Button(action: { showAddView = true }) {
+            Button(action: { 
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                    showAddInput = true
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    isInputFocused = true
+                }
+            }) {
                 HStack(spacing: 8) {
                     Image(systemName: "plus")
                         .font(.system(size: 15))
@@ -168,7 +281,14 @@ struct ItemsView: View {
     }
     
     private var floatingAddButton: some View {
-        Button(action: { showAddView = true }) {
+        Button(action: { 
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                showAddInput = true
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                isInputFocused = true
+            }
+        }) {
             ZStack {
                 Circle()
                     .fill(.ultraThinMaterial)
@@ -262,6 +382,31 @@ struct ItemsView: View {
         DispatchQueue.main.async {
             self.errorMessage = message
             self.showError = true
+        }
+    }
+    
+    private func addNewItem() {
+        let cleanedTitle = newItemTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !cleanedTitle.isEmpty else { return }
+        
+        let newItem = Item(title: cleanedTitle)
+        context.insert(newItem)
+        
+        do {
+            try context.save()
+            
+            // Haptic feedback
+            let generator = UIImpactFeedbackGenerator(style: .medium)
+            generator.impactOccurred()
+            
+            // Reset and close
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                newItemTitle = ""
+                showAddInput = false
+                isInputFocused = false
+            }
+        } catch {
+            handleError(error)
         }
     }
 }
