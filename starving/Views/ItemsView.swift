@@ -14,6 +14,10 @@ struct ItemsView: View {
     @State private var showError: Bool = false
     @FocusState private var isInputFocused: Bool
     
+    @State private var editingItem: Item? = nil
+    @State private var editedTitle: String = ""
+    @FocusState private var isEditFocused: Bool
+    
     // MARK: - View
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
@@ -227,7 +231,8 @@ struct ItemsView: View {
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                     showAddInput = true
                 }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                // Focus keyboard immediately
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                     isInputFocused = true
                 }
             }) {
@@ -259,25 +264,42 @@ struct ItemsView: View {
     }
     
     private var itemsList: some View {
-        ScrollView {
-            LazyVStack(spacing: 0) {
-                ForEach(items) { item in
+        List {
+            ForEach(items) { item in
+                if editingItem?.id == item.id {
+                    editItemField(item: item)
+                        .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
+                } else {
                     ItemRow(item: item, isSelected: isItemSelected(item)) {
                         toggleItem(item)
                     }
-                    .padding(.horizontal, 20)
-                    
-                    if item.id != items.last?.id {
-                        Divider()
-                            .padding(.leading, 60)
-                            .padding(.trailing, 20)
-                            .opacity(0.3)
+                    .listRowInsets(EdgeInsets(top: 0, leading: 20, bottom: 0, trailing: 20))
+                    .listRowSeparator(.visible)
+                    .listRowSeparatorTint(Color.secondary.opacity(0.3))
+                    .listRowBackground(Color.clear)
+                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                        Button(role: .destructive) {
+                            deleteItem(item)
+                        } label: {
+                            Label("Delete", systemImage: "trash.fill")
+                        }
+                        .tint(.red)
+                        
+                        Button {
+                            startEditingItem(item)
+                        } label: {
+                            Label("Edit", systemImage: "pencil")
+                        }
+                        .tint(.blue)
                     }
                 }
             }
-            .padding(.vertical, 8)
-            .padding(.bottom, 80)
         }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .padding(.bottom, 80)
     }
     
     private var floatingAddButton: some View {
@@ -285,50 +307,51 @@ struct ItemsView: View {
             withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                 showAddInput = true
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            // Focus keyboard immediately
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 isInputFocused = true
             }
         }) {
-            ZStack {
-                Circle()
-                    .fill(.ultraThinMaterial)
-                    .frame(width: 56, height: 56)
-                
-                Circle()
-                    .fill(
-                        RadialGradient(
-                            colors: [
-                                Color.green.opacity(0.6),
-                                Color.green.opacity(0.3),
-                                Color.clear
-                            ],
-                            center: .center,
-                            startRadius: 0,
-                            endRadius: 35
-                        )
-                    )
-                    .frame(width: 56, height: 56)
-                
-                Image(systemName: "plus")
-                    .font(.system(size: 24, weight: .semibold))
-                    .foregroundColor(.white)
-            }
-            .overlay(
-                Circle()
-                    .strokeBorder(
-                        LinearGradient(
-                            colors: [
-                                Color.white.opacity(0.4),
-                                Color.white.opacity(0.2)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 1
-                    )
-                    .frame(width: 56, height: 56)
-            )
-            .shadow(color: Color.green.opacity(0.4), radius: 12, x: 0, y: 6)
+            Image(systemName: "plus")
+                .font(.system(size: 22, weight: .medium))
+                .foregroundColor(.white.opacity(0.9))
+                .frame(width: 48, height: 48)
+                .background(
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(.ultraThinMaterial)
+                            .opacity(0.7)
+                        
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(
+                                LinearGradient(
+                                    colors: [
+                                        Color.white.opacity(0.08),
+                                        Color.white.opacity(0.02)
+                                    ],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                            )
+                        
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(Color.green.opacity(0.18))
+                        
+                        RoundedRectangle(cornerRadius: 16)
+                            .strokeBorder(
+                                LinearGradient(
+                                    colors: [
+                                        Color.white.opacity(0.3),
+                                        Color.white.opacity(0.1)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1
+                            )
+                    }
+                )
+                .shadow(color: Color.green.opacity(0.25), radius: 15, x: 0, y: 8)
         }
         .padding(.trailing, 20)
         .padding(.bottom, 20)
@@ -408,6 +431,167 @@ struct ItemsView: View {
         } catch {
             handleError(error)
         }
+    }
+    
+    private func startEditingItem(_ item: Item) {
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+            editingItem = item
+            editedTitle = item.title
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            isEditFocused = true
+        }
+    }
+    
+    private func saveEdit() {
+        let cleanedTitle = editedTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !cleanedTitle.isEmpty, let item = editingItem else { return }
+        
+        item.title = cleanedTitle
+        
+        do {
+            try context.save()
+            
+            // Haptic feedback
+            let generator = UIImpactFeedbackGenerator(style: .medium)
+            generator.impactOccurred()
+            
+            // Reset
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                editingItem = nil
+                editedTitle = ""
+                isEditFocused = false
+            }
+        } catch {
+            handleError(error)
+        }
+    }
+    
+    private func cancelEdit() {
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+            editingItem = nil
+            editedTitle = ""
+            isEditFocused = false
+        }
+    }
+    
+    private func deleteItem(_ item: Item) {
+        // Haptic feedback
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.warning)
+        
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+            // Remove from today's list if present
+            if let today = getToday() {
+                if let index = today.items.firstIndex(where: { $0.id == item.id }) {
+                    today.items.remove(at: index)
+                }
+            }
+            
+            // Delete the item
+            context.delete(item)
+            
+            do {
+                try context.save()
+            } catch {
+                handleError(error)
+            }
+        }
+    }
+    
+    private func editItemField(item: Item) -> some View {
+        HStack(spacing: 12) {
+            // Edit field
+            HStack(spacing: 12) {
+                Image(systemName: "pencil")
+                    .font(.system(size: 18))
+                    .foregroundColor(.blue)
+                
+                TextField("Edit item...", text: $editedTitle)
+                    .font(.system(size: 16))
+                    .focused($isEditFocused)
+                    .submitLabel(.done)
+                    .onSubmit {
+                        saveEdit()
+                    }
+                
+                if !editedTitle.isEmpty {
+                    Button(action: { 
+                        editedTitle = item.title
+                    }) {
+                        Image(systemName: "arrow.uturn.backward.circle.fill")
+                            .font(.system(size: 16))
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(.ultraThinMaterial)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .strokeBorder(
+                                LinearGradient(
+                                    colors: [
+                                        Color.blue.opacity(0.4),
+                                        Color.blue.opacity(0.2)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 2
+                            )
+                    )
+            )
+            .shadow(color: Color.blue.opacity(0.15), radius: 8, x: 0, y: 4)
+            
+            // Action buttons
+            HStack(spacing: 8) {
+                // Save button
+                Button(action: { saveEdit() }) {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white)
+                        .frame(width: 44, height: 44)
+                        .background(
+                            Circle()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [Color.blue, Color.blue.opacity(0.85)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                        )
+                        .shadow(color: Color.blue.opacity(0.3), radius: 8, x: 0, y: 4)
+                }
+                .disabled(editedTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                .opacity(editedTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.5 : 1.0)
+                
+                // Cancel button
+                Button(action: { cancelEdit() }) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.secondary)
+                        .frame(width: 44, height: 44)
+                        .background(
+                            Circle()
+                                .fill(.ultraThinMaterial)
+                                .overlay(
+                                    Circle()
+                                        .strokeBorder(Color.white.opacity(0.2), lineWidth: 1)
+                                )
+                        )
+                        .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+                }
+            }
+        }
+        .transition(.asymmetric(
+            insertion: .scale.combined(with: .opacity),
+            removal: .scale.combined(with: .opacity)
+        ))
     }
 }
 

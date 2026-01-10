@@ -47,14 +47,15 @@ struct HomeView: View {
                 )
             }
             .gesture(
-                DragGesture()
+                // Only apply swipe gesture when not on Items tab (to allow List swipe actions)
+                selectedTab != .items ? DragGesture()
                     .onChanged { value in
                         dragOffset = value.translation.width
                     }
                     .onEnded { value in
                         handleSwipe(value.translation.width)
                         dragOffset = 0
-                    }
+                    } : nil
             )
         }
         .onAppear {
