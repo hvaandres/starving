@@ -115,7 +115,7 @@ struct FloatingTabBar: View {
                 )
             }
         }
-        .padding(.horizontal, 12)
+        .padding(.horizontal, 8)
         .padding(.vertical, 8)
         .background(
             ZStack {
@@ -153,7 +153,8 @@ struct FloatingTabBar: View {
             }
             .shadow(color: Color.black.opacity(0.15), radius: 25, x: 0, y: 12)
         )
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+        .padding(.leading, 20)
         .padding(.bottom, 20)
     }
 }
@@ -166,36 +167,30 @@ struct TabBarButton: View {
     
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 4) {
-                Image(systemName: tab.iconName)
-                    .font(.system(size: 20, weight: .medium))
-                    .foregroundColor(isSelected ? tab.color : .white.opacity(0.7))
-                
-                Text(tab.label)
-                    .font(.system(size: 10, weight: .medium))
-                    .foregroundColor(isSelected ? tab.color : .white.opacity(0.7))
-            }
-            .frame(width: 70, height: 54)
-            .background(
-                ZStack {
-                    if isSelected {
-                        RoundedRectangle(cornerRadius: 14)
-                            .fill(tab.color.opacity(0.18))
-                        
-                        RoundedRectangle(cornerRadius: 14)
-                            .fill(
-                                LinearGradient(
-                                    colors: [
-                                        Color.white.opacity(0.15),
-                                        Color.clear
-                                    ],
-                                    startPoint: .top,
-                                    endPoint: .bottom
+            Image(systemName: tab.iconName)
+                .font(.system(size: 22, weight: .medium))
+                .foregroundColor(isSelected ? tab.color : .white.opacity(0.7))
+                .frame(width: 48, height: 48)
+                .background(
+                    ZStack {
+                        if isSelected {
+                            RoundedRectangle(cornerRadius: 14)
+                                .fill(tab.color.opacity(0.18))
+                            
+                            RoundedRectangle(cornerRadius: 14)
+                                .fill(
+                                    LinearGradient(
+                                        colors: [
+                                            Color.white.opacity(0.15),
+                                            Color.clear
+                                        ],
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    )
                                 )
-                            )
+                        }
                     }
-                }
-            )
+                )
         }
         .buttonStyle(PlainButtonStyle())
     }
