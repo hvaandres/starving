@@ -98,55 +98,23 @@ struct FloatingTabBar: View {
     @Binding var hoveredTab: Tab?
     
     let tabs: [Tab] = [.today, .items, .reminders, .settings]
-    @State private var draggedTab: Tab? = nil
-    @State private var isDragging = false
     
     var body: some View {
-        GeometryReader { containerGeometry in
-            HStack(spacing: 8) {
-                ForEach(Array(tabs.enumerated()), id: \.element) { index, tab in
-                    TabBarButton(
-                        tab: tab,
-                        isSelected: selectedTab == tab,
-                        isMagnified: draggedTab == tab && isDragging,
-                        action: {
-                            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                                selectedTab = tab
-                            }
-                            let generator = UIImpactFeedbackGenerator(style: .light)
-                            generator.impactOccurred()
+        HStack(spacing: 8) {
+            ForEach(tabs, id: \.self) { tab in
+                TabBarButton(
+                    tab: tab,
+                    isSelected: selectedTab == tab,
+                    action: {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            selectedTab = tab
                         }
-                    )
-                    .frame(width: 48, height: 48)
-                }
+                        let generator = UIImpactFeedbackGenerator(style: .light)
+                        generator.impactOccurred()
+                    }
+                )
             }
-            .clipped()
-            .gesture(
-                DragGesture(minimumDistance: 0)
-                    .onChanged { value in
-                        isDragging = true
-                        // Calculate which tab is under the finger
-                        let x = value.location.x - 8 // Account for padding
-                        let tabWidth: CGFloat = 56 // 48 + 8 spacing
-                        let index = Int(x / tabWidth)
-                        
-                        if index >= 0 && index < tabs.count {
-                            let newTab = tabs[index]
-                            if draggedTab != newTab {
-                                draggedTab = newTab
-                                let generator = UISelectionFeedbackGenerator()
-                                generator.selectionChanged()
-                            }
-                        }
-                    }
-                    .onEnded { _ in
-                        isDragging = false
-                        draggedTab = nil
-                    }
-            )
         }
-        .frame(height: 48)
-        .clipped()
         .padding(.horizontal, 8)
         .padding(.vertical, 8)
         .background(
@@ -195,7 +163,6 @@ struct FloatingTabBar: View {
 struct TabBarButton: View {
     let tab: Tab
     let isSelected: Bool
-    let isMagnified: Bool
     let action: () -> Void
     
     var body: some View {
@@ -203,8 +170,6 @@ struct TabBarButton: View {
             Image(systemName: tab.iconName)
                 .font(.system(size: 22, weight: .medium))
                 .foregroundColor(isSelected ? tab.color : .white.opacity(0.7))
-                .scaleEffect(isMagnified ? 1.3 : 1.0)
-                .animation(.spring(response: 0.25, dampingFraction: 0.6), value: isMagnified)
                 .frame(width: 48, height: 48)
                 .background(
                     ZStack {
