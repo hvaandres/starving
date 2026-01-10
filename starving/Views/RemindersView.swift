@@ -14,50 +14,64 @@ struct ReminderTimeCard: View {
     let isActive: Bool
     
     var body: some View {
-        VStack(spacing: 8) {
-            // Icon
-            Image(systemName: isActive ? "bell.badge.fill" : "bell")
-                .font(.system(size: 20, weight: .semibold))
-                .foregroundColor(isActive ? Color.orange : .white.opacity(0.6))
+        ZStack {
+            // Glow background when active
+            if isActive {
+                RoundedRectangle(cornerRadius: 18)
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                Color.orange.opacity(0.4),
+                                Color.orange.opacity(0.2),
+                                Color.clear
+                            ],
+                            center: .center,
+                            startRadius: 0,
+                            endRadius: 60
+                        )
+                    )
+                    .frame(width: 95, height: 95)
+                    .blur(radius: 8)
+            }
             
-            // Time
-            Text(time)
-                .font(.caption.weight(isActive ? .semibold : .medium))
-                .foregroundColor(isActive ? .white : .white.opacity(0.7))
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
-        }
-        .frame(width: 70, height: 70)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(.ultraThinMaterial)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .strokeBorder(
-                            isActive ? 
+            // Card content
+            VStack(spacing: 10) {
+                // Icon
+                Image(systemName: isActive ? "bell.badge.fill" : "bell")
+                    .font(.system(size: 24, weight: .semibold))
+                    .foregroundColor(isActive ? Color.orange : .white.opacity(0.6))
+                
+                // Time
+                Text(time)
+                    .font(.subheadline.weight(isActive ? .semibold : .medium))
+                    .foregroundColor(isActive ? .white : .white.opacity(0.7))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
+            .frame(width: 85, height: 85)
+            .background(
+                RoundedRectangle(cornerRadius: 18)
+                    .fill(isActive ? .thinMaterial : .ultraThinMaterial)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 18)
+                            .strokeBorder(
                                 LinearGradient(
-                                    colors: [
-                                        Color.orange.opacity(0.6),
-                                        Color.orange.opacity(0.3)
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            :
-                                LinearGradient(
-                                    colors: [
+                                    colors: isActive ? [
+                                        Color.orange.opacity(0.5),
+                                        Color.orange.opacity(0.25)
+                                    ] : [
                                         Color.white.opacity(0.2),
                                         Color.white.opacity(0.1)
                                     ],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
                                 ),
-                            lineWidth: isActive ? 2 : 1
-                        )
-                )
-        )
-        .shadow(color: isActive ? Color.orange.opacity(0.3) : Color.black.opacity(0.15), radius: 8, x: 0, y: 3)
-        .scaleEffect(isActive ? 1.05 : 1.0)
+                                lineWidth: 1
+                            )
+                    )
+            )
+            .shadow(color: isActive ? Color.orange.opacity(0.4) : Color.black.opacity(0.15), radius: 12, x: 0, y: 4)
+        }
         .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isActive)
     }
 }
@@ -252,21 +266,21 @@ struct RemindersView: View {
                             isEditingTime.toggle()
                         }
                     }) {
-                        VStack(spacing: 8) {
+                        VStack(spacing: 10) {
                             Image(systemName: "clock.badge.plus")
-                                .font(.system(size: 20, weight: .semibold))
+                                .font(.system(size: 24, weight: .semibold))
                                 .foregroundColor(.white.opacity(0.6))
                             
                             Text("Custom")
-                                .font(.caption.weight(.medium))
+                                .font(.subheadline.weight(.medium))
                                 .foregroundColor(.white.opacity(0.7))
                         }
-                        .frame(width: 70, height: 70)
+                        .frame(width: 85, height: 85)
                         .background(
-                            RoundedRectangle(cornerRadius: 16)
+                            RoundedRectangle(cornerRadius: 18)
                                 .fill(.ultraThinMaterial)
                                 .overlay(
-                                    RoundedRectangle(cornerRadius: 16)
+                                    RoundedRectangle(cornerRadius: 18)
                                         .strokeBorder(
                                             LinearGradient(
                                                 colors: [
@@ -280,7 +294,7 @@ struct RemindersView: View {
                                         )
                                 )
                         )
-                        .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 3)
+                        .shadow(color: Color.black.opacity(0.15), radius: 12, x: 0, y: 4)
                     }
                     .buttonStyle(.plain)
                 }
