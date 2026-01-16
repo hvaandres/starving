@@ -36,6 +36,9 @@ struct TodayView: View {
     // MARK: - Body
     var body: some View {
         ZStack(alignment: .bottom) {
+            Color(.systemBackground)
+                .ignoresSafeArea()
+            
             VStack(spacing: 0) {
                 // Header section
                 VStack(spacing: 8) {
@@ -53,8 +56,8 @@ struct TodayView: View {
                 }
             }
             
-            // Complete button at bottom
-            if hasItemsToday && !currentDay.items.isEmpty {
+            // Complete button at bottom - only show when items are selected
+            if hasItemsToday && !completedItems.isEmpty {
                 completeButton
             }
         }

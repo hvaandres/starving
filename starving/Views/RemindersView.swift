@@ -39,12 +39,12 @@ struct ReminderTimeCard: View {
                 // Icon
                 Image(systemName: isActive ? "bell.badge.fill" : "bell")
                     .font(.system(size: 24, weight: .semibold))
-                    .foregroundColor(isActive ? Color.orange : .white.opacity(0.6))
+                    .foregroundColor(isActive ? Color.orange : .secondary)
                 
                 // Time
                 Text(time)
                     .font(.subheadline.weight(isActive ? .semibold : .medium))
-                    .foregroundColor(isActive ? .white : .white.opacity(0.7))
+                    .foregroundColor(isActive ? Color.orange : .primary)
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
             }
@@ -90,12 +90,12 @@ struct AnimatedToggle: View {
                 // Icon
                 Image(systemName: isOn ? "bell.badge.fill" : "bell.slash")
                     .font(.system(size: 22, weight: .semibold))
-                    .foregroundColor(isOn ? Color.orange : .white.opacity(0.5))
+                    .foregroundColor(isOn ? Color.orange : .secondary)
                 
                 // Label
                 Text(label)
                     .font(.headline)
-                    .foregroundColor(.white)
+                    .foregroundColor(.primary)
                 
                 Spacer()
                 
@@ -165,7 +165,7 @@ struct RemindersView: View {
     
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            Color(.systemBackground).ignoresSafeArea()
             
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 24) {
@@ -227,12 +227,12 @@ struct RemindersView: View {
                 
                 Text("Daily Reminders")
                     .font(.system(size: 32, weight: .bold))
-                    .foregroundColor(.white)
+                    .foregroundColor(.primary)
             }
             
             Text("Never forget your groceries with gentle daily notifications")
                 .font(.subheadline)
-                .foregroundColor(.white.opacity(0.7))
+                .foregroundColor(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -245,7 +245,7 @@ struct RemindersView: View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Choose Reminder Time")
                 .font(.headline)
-                .foregroundColor(.white)
+                .foregroundColor(.primary)
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
@@ -269,11 +269,11 @@ struct RemindersView: View {
                         VStack(spacing: 10) {
                             Image(systemName: "clock.badge.plus")
                                 .font(.system(size: 24, weight: .semibold))
-                                .foregroundColor(.white.opacity(0.6))
+                                .foregroundColor(.secondary)
                             
                             Text("Custom")
                                 .font(.subheadline.weight(.medium))
-                                .foregroundColor(.white.opacity(0.7))
+                                .foregroundColor(.secondary)
                         }
                         .frame(width: 85, height: 85)
                         .background(
@@ -345,7 +345,7 @@ struct RemindersView: View {
                 
                 Text("Reminder Active")
                     .font(.title3.weight(.semibold))
-                    .foregroundColor(.white)
+                    .foregroundColor(.primary)
                 
                 Spacer()
             }
@@ -357,7 +357,7 @@ struct RemindersView: View {
                         .foregroundColor(.orange.opacity(0.8))
                     Text("Daily at \(formattedTime)")
                         .font(.subheadline.weight(.medium))
-                        .foregroundColor(.white.opacity(0.9))
+                        .foregroundColor(.primary)
                 }
                 
                 HStack {
@@ -366,7 +366,7 @@ struct RemindersView: View {
                         .foregroundColor(.blue.opacity(0.8))
                     Text("Last updated \(Date(timeIntervalSince1970: lastModified).formatted(.relative(presentation: .named)))")
                         .font(.caption)
-                        .foregroundColor(.white.opacity(0.6))
+                        .foregroundColor(.secondary)
                 }
             }
         }
@@ -407,7 +407,7 @@ struct RemindersView: View {
                 
                 Text("How It Works")
                     .font(.headline)
-                    .foregroundColor(.white)
+                    .foregroundColor(.primary)
             }
             
             VStack(alignment: .leading, spacing: 10) {
@@ -550,12 +550,12 @@ struct InfoRow: View {
         HStack(spacing: 12) {
             Image(systemName: icon)
                 .font(.system(size: 14))
-                .foregroundColor(.white.opacity(0.7))
+                .foregroundColor(.secondary)
                 .frame(width: 20)
             
             Text(text)
                 .font(.subheadline)
-                .foregroundColor(.white.opacity(0.8))
+                .foregroundColor(.primary)
         }
     }
 }

@@ -3,12 +3,11 @@ import SwiftData
 
 struct ItemsView: View {
     // MARK: - Properties
+    @Binding var showAddInput: Bool
     @Environment(\.modelContext) private var context
     
     @Query(filter: Day.currentDayPredicate(), sort: \.date) private var today: [Day]
     @Query(filter: #Predicate<Item> { $0.isHidden == false }, sort: [SortDescriptor(\Item.title, order: .forward)]) private var items: [Item]
-    
-    @State private var showAddInput: Bool = false
     @State private var newItemTitle: String = ""
     @State private var errorMessage: String? = nil
     @State private var showError: Bool = false
@@ -20,7 +19,10 @@ struct ItemsView: View {
     
     // MARK: - View
     var body: some View {
-        ZStack(alignment: .bottomTrailing) {
+        ZStack {
+            Color(.systemBackground)
+                .ignoresSafeArea()
+            
             VStack(spacing: 0) {
                 // Header section
                 VStack(spacing: 8) {
@@ -30,26 +32,21 @@ struct ItemsView: View {
                 .padding(.horizontal, 20)
                 .padding(.top, 20)
                 .padding(.bottom, 12)
-                
-                // Inline add input
-                if showAddInput {
-                    addInputField
-                        .transition(.asymmetric(
-                            insertion: .move(edge: .top).combined(with: .opacity),
-                            removal: .move(edge: .top).combined(with: .opacity)
-                        ))
-                }
-                
+            
+            // Inline add input
+            if showAddInput {
+                addInputField
+                    .transition(.asymmetric(
+                        insertion: .move(edge: .top).combined(with: .opacity),
+                        removal: .move(edge: .top).combined(with: .opacity)
+                    ))
+            }
+            
                 if items.isEmpty {
                     emptyStateView
                 } else {
                     itemsList
                 }
-            }
-            
-            // Floating + button
-            if !items.isEmpty {
-                floatingAddButton
             }
         }
         .alert("Error", isPresented: $showError, presenting: errorMessage) { _ in
@@ -59,6 +56,13 @@ struct ItemsView: View {
         }
         .onChange(of: errorMessage) { _, newValue in
             showError = newValue != nil
+        }
+        .onChange(of: showAddInput) { _, newValue in
+            if newValue {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    isInputFocused = true
+                }
+            }
         }
     }
     
@@ -302,60 +306,6 @@ struct ItemsView: View {
         .padding(.bottom, 80)
     }
     
-    private var floatingAddButton: some View {
-        Button(action: { 
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                showAddInput = true
-            }
-            // Focus keyboard immediately
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                isInputFocused = true
-            }
-        }) {
-            Image(systemName: "plus")
-                .font(.system(size: 22, weight: .medium))
-                .foregroundColor(.white.opacity(0.9))
-                .frame(width: 48, height: 48)
-                .background(
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(.ultraThinMaterial)
-                            .opacity(0.7)
-                        
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(
-                                LinearGradient(
-                                    colors: [
-                                        Color.white.opacity(0.08),
-                                        Color.white.opacity(0.02)
-                                    ],
-                                    startPoint: .top,
-                                    endPoint: .bottom
-                                )
-                            )
-                        
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(Color.green.opacity(0.18))
-                        
-                        RoundedRectangle(cornerRadius: 16)
-                            .strokeBorder(
-                                LinearGradient(
-                                    colors: [
-                                        Color.white.opacity(0.3),
-                                        Color.white.opacity(0.1)
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                ),
-                                lineWidth: 1
-                            )
-                    }
-                )
-                .shadow(color: Color.green.opacity(0.25), radius: 15, x: 0, y: 8)
-        }
-        .padding(.trailing, 20)
-        .padding(.bottom, 20)
-    }
     
     // MARK: - Helper Methods
     private func isItemSelected(_ item: Item) -> Bool {
@@ -596,5 +546,5 @@ struct ItemsView: View {
 }
 
 #Preview {
-    ItemsView()
+    ItemsView(showAddInput: .constant(false))
 }
