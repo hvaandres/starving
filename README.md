@@ -17,18 +17,22 @@ For complete setup instructions including Firebase configuration, see [SETUP.md]
 
 ## ScreenShoots
 
-<div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 16px;">
+<table align="center">
+  <tr>
+    <td><img src="https://github.com/user-attachments/assets/bf2bd5b8-ab86-4e2d-8d9d-c9e4a28edc37" width="400"/></td>
+    <td><img src="https://github.com/user-attachments/assets/5637f62d-98e1-4817-a62c-a90a4a7720a3" width="400"/></td>
+  </tr>
+  <tr>
+    <td><img src="https://github.com/user-attachments/assets/4d3f5e46-79f6-44a4-a432-7f44a3d83439" width="400"/></td>
+    <td><img src="https://github.com/user-attachments/assets/bf93232e-295f-4755-87f5-b4d60eabea2e" width="400"/></td>
+  </tr>
+  <tr>
+    <td><img src="https://github.com/user-attachments/assets/4d804053-a2a2-4388-b8f1-94d19f164c8b" width="400"/></td>
+    <td><img src="https://github.com/user-attachments/assets/7a968416-d1fc-4c68-9575-e2144cdc68c3" width="400"/></td>
+  </tr>
+</table>
 
-  <img src="https://github.com/user-attachments/assets/1dae48cd-d10f-4f10-9c4f-746def4564e9" width="300" />
-  <img src="https://github.com/user-attachments/assets/dc2a9a73-0b66-460f-9b5a-41729935b168" width="300" />
 
-  <img src="https://github.com/user-attachments/assets/837db993-d327-49ed-a904-d59ca0af04bf" width="300" />
-  <img src="https://github.com/user-attachments/assets/2337dfce-9422-4231-9185-4435c2d44b15" width="300" />
-
-  <img src="https://github.com/user-attachments/assets/aa72f3ec-f2e8-4873-912f-8109868cdace" width="300" />
-  <img src="https://github.com/user-attachments/assets/3d0ad9a8-dfc4-4a00-898f-c06a19ec554b" width="300" />
-
-</div>
 
 
 
