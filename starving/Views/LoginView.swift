@@ -138,7 +138,11 @@ class AppleSignInCoordinator: NSObject, ASAuthorizationControllerDelegate, ASAut
     }
     
     func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
-        authManager.handleAppleSignInResult(authorization: authorization)
+        guard let nonce = currentNonce else {
+            authManager.errorMessage = "Invalid state: A login callback was received, but no login request was sent."
+            return
+        }
+        authManager.handleAppleSignInResult(authorization: authorization, nonce: nonce)
     }
     
     func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {

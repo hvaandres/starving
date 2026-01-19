@@ -46,7 +46,7 @@ class AuthenticationManager: ObservableObject {
         authorizationController.performRequests()
     }
     
-    func handleAppleSignInResult(authorization: ASAuthorization) {
+    func handleAppleSignInResult(authorization: ASAuthorization, nonce: String) {
         guard let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential else {
             self.errorMessage = "Invalid Apple ID credential"
             return
@@ -58,7 +58,6 @@ class AuthenticationManager: ObservableObject {
             return
         }
         
-        let nonce = randomNonceString()
         let credential = OAuthProvider.credential(withProviderID: "apple.com", idToken: idTokenString, rawNonce: nonce)
         
         isLoading = true
