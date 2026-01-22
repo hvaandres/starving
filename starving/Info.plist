@@ -74,8 +74,6 @@
 			<array>
 				<string>com.hvaandres.starving.grocerylist</string>
 			</array>
-			<key>LSSupportsOpeningDocumentsInPlace</key>
-			<true/>
 		</dict>
 	</array>
 	<key>UTExportedTypeDeclarations</key>
@@ -101,5 +99,7 @@
 			</dict>
 		</dict>
 	</array>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
 </dict>
 </plist>
