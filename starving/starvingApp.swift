@@ -17,6 +17,9 @@ struct StarvingApp: App {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding: Bool = false
     
     init() {
+        // Enable verbose Firebase logging
+        FirebaseConfiguration.shared.setLoggerLevel(.debug)
+        
         FirebaseApp.configure()
         
         // Configure Google Sign-In

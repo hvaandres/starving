@@ -6,9 +6,9 @@ target 'starving' do
   use_frameworks!
 
   # Pods for starving
-  pod 'FirebaseCore'
-  pod 'FirebaseAuth'
-  pod 'FirebaseFirestore'
+  pod 'FirebaseCore', '~> 11.5.0'
+  pod 'FirebaseAuth', '~> 11.5.0'
+  pod 'FirebaseFirestore', '~> 11.5.0'
   pod 'GoogleSignIn'
 end
 
