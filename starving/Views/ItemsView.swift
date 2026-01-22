@@ -5,6 +5,9 @@ struct ItemsView: View {
     // MARK: - Properties
     @Binding var showAddInput: Bool
     @Environment(\.modelContext) private var context
+    @StateObject private var firestoreManager = FirestoreManager()
+    @State private var showShareView = false
+    @State private var shareEnabled = false
     
     @Query(filter: Day.currentDayPredicate(), sort: \.date) private var today: [Day]
     @Query(filter: #Predicate<Item> { $0.isHidden == false }, sort: [SortDescriptor(\Item.title, order: .forward)]) private var items: [Item]
@@ -64,6 +67,15 @@ struct ItemsView: View {
                 }
             }
         }
+        .sheet(isPresented: $showShareView) {
+            ItemShareView()
+        }
+        .onAppear {
+            Task {
+                await firestoreManager.loadUserPreferences()
+                shareEnabled = firestoreManager.userPreferences.shareEnabled
+            }
+        }
     }
     
     // MARK: - View Components
@@ -77,6 +89,67 @@ struct ItemsView: View {
                     .foregroundColor(.secondary)
             }
             Spacer()
+            
+            // Share button - only show if sharing is enabled
+            if shareEnabled {
+                Button(action: {
+                    showShareView = true
+                    let generator = UIImpactFeedbackGenerator(style: .light)
+                    generator.impactOccurred()
+                }) {
+                    Image(systemName: "square.and.arrow.up")
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [
+                                    Color.indigo,
+                                    Color.indigo.opacity(0.8)
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .frame(width: 44, height: 44)
+                }
+                .background(
+                    ZStack {
+                        // Liquid glass effect matching the plus button
+                        Circle()
+                            .fill(.ultraThinMaterial)
+                        
+                        Circle()
+                            .fill(
+                                RadialGradient(
+                                    colors: [
+                                        Color.indigo.opacity(0.2),
+                                        Color.clear
+                                    ],
+                                    center: .center,
+                                    startRadius: 10,
+                                    endRadius: 30
+                                )
+                            )
+                        
+                        Circle()
+                            .strokeBorder(
+                                LinearGradient(
+                                    colors: [
+                                        Color.white.opacity(0.3),
+                                        Color.white.opacity(0.1)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1
+                            )
+                    }
+                )
+                .clipShape(Circle())
+                .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
+                .shadow(color: Color.indigo.opacity(0.2), radius: 6, x: 0, y: 3)
+                .disabled(items.isEmpty)
+                .opacity(items.isEmpty ? 0.5 : 1.0)
+            }
         }
     }
     

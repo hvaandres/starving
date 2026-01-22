@@ -7,11 +7,9 @@
 
 import Foundation
 import FirebaseFirestore
-import FirebaseFirestoreSwift
 import FirebaseAuth
 import SwiftUI
 
-@MainActor
 class FirestoreManager: ObservableObject {
     private let db = Firestore.firestore()
     
@@ -29,6 +27,7 @@ class FirestoreManager: ObservableObject {
     
     // MARK: - User Preferences
     
+    @MainActor
     func loadUserPreferences() async {
         guard let userId = Auth.auth().currentUser?.uid else { return }
         
@@ -45,6 +44,7 @@ class FirestoreManager: ObservableObject {
         }
     }
     
+    @MainActor
     func saveUserPreferences() async {
         guard let userId = Auth.auth().currentUser?.uid else { return }
         
@@ -72,6 +72,7 @@ class FirestoreManager: ObservableObject {
     
     // MARK: - Item Management
     
+    @MainActor
     func saveItem(_ item: FirestoreItem) async {
         guard let userId = Auth.auth().currentUser?.uid,
               userPreferences.cloudSyncEnabled else { return }
@@ -170,6 +171,7 @@ class FirestoreManager: ObservableObject {
     
     // MARK: - Sync Operations
     
+    @MainActor
     func syncLocalDataToCloud() async {
         guard userPreferences.cloudSyncEnabled else { return }
         syncStatus = .syncing
@@ -196,25 +198,63 @@ class FirestoreManager: ObservableObject {
         // Implementation will be in the HybridDataManager
     }
     
-    // MARK: - Sharing Functions
+    // MARK: - User Profile Management
     
-    func createSharedList(name: String, items: [FirestoreItem], description: String? = nil) async -> String? {
-        guard let userId = Auth.auth().currentUser?.uid else { return nil }
-        
-        let sharedList = SharedList(name: name, description: description, ownerId: userId)
-        var listWithItems = sharedList
-        listWithItems.items = items
+    func saveUserProfile(userId: String, displayName: String, email: String?, photoURL: String?, provider: UserProfile.AuthProvider) async {
+        let profile = UserProfile(userId: userId, displayName: displayName, email: email, photoURL: photoURL, provider: provider)
         
         do {
-            let docRef = try db.collection("sharedLists").addDocument(from: listWithItems)
+            try db.collection("users").document(userId).setData(from: profile)
+        } catch {
+            print("Error saving user profile: \(error)")
+        }
+    }
+    
+    func getUserProfile(userId: String) async -> UserProfile? {
+        do {
+            let document = try await db.collection("users").document(userId).getDocument()
+            return try? document.data(as: UserProfile.self)
+        } catch {
+            print("Error fetching user profile: \(error)")
+            return nil
+        }
+    }
+    
+    // MARK: - Sharing Functions
+    
+    func createSharedList(name: String, itemIds: [String], itemTitles: [String], ownerName: String, ownerPhotoURL: String?) async -> String? {
+        guard let userId = Auth.auth().currentUser?.uid else { return nil }
+        
+        var sharedList = SharedList(name: name, ownerId: userId, ownerName: ownerName, ownerPhotoURL: ownerPhotoURL)
+        sharedList.itemIds = itemIds
+        sharedList.itemTitles = itemTitles
+        
+        do {
+            let docRef = try db.collection("sharedLists").addDocument(from: sharedList)
+            let listId = docRef.documentID
+            
+            // Update with share link
+            try await docRef.updateData(["shareLink": "starving://share/\(listId)"])
+            
             await loadSharedLists() // Refresh the list
-            return docRef.documentID
+            return listId
         } catch {
             print("Error creating shared list: \(error)")
             return nil
         }
     }
     
+    func getSharedList(listId: String) async -> SharedList? {
+        do {
+            let document = try await db.collection("sharedLists").document(listId).getDocument()
+            return try? document.data(as: SharedList.self)
+        } catch {
+            print("Error fetching shared list: \(error)")
+            return nil
+        }
+    }
+    
+    @MainActor
     func loadSharedLists() async {
         guard let userId = Auth.auth().currentUser?.uid else { return }
         
@@ -224,15 +264,15 @@ class FirestoreManager: ObservableObject {
                 .whereField("ownerId", isEqualTo: userId)
                 .getDocuments()
             
-            // Load lists shared with user  
-            let sharedQuery = try await db.collection("sharedLists")
-                .whereField("sharedWith", arrayContains: userId)
+            // Load lists where user is a recipient
+            let receivedQuery = try await db.collection("sharedLists")
+                .whereField("recipientIds", arrayContains: userId)
                 .getDocuments()
             
             var allLists: [SharedList] = []
             
             allLists += ownedQuery.documents.compactMap { try? $0.data(as: SharedList.self) }
-            allLists += sharedQuery.documents.compactMap { try? $0.data(as: SharedList.self) }
+            allLists += receivedQuery.documents.compactMap { try? $0.data(as: SharedList.self) }
             
             self.sharedLists = allLists
         } catch {
@@ -240,14 +280,44 @@ class FirestoreManager: ObservableObject {
         }
     }
     
-    func shareList(listId: String, withUserId: String) async {
+    func addRecipientToSharedList(listId: String, recipientId: String) async {
         do {
             try await db.collection("sharedLists").document(listId).updateData([
-                "sharedWith": FieldValue.arrayUnion([withUserId])
+                "recipientIds": FieldValue.arrayUnion([recipientId]),
+                "lastUpdated": Date()
             ])
             await loadSharedLists()
         } catch {
-            print("Error sharing list: \(error)")
+            print("Error adding recipient to shared list: \(error)")
+        }
+    }
+    
+    func updateCompletionStatus(listId: String, recipientId: String, completed: Bool) async {
+        do {
+            try await db.collection("sharedLists").document(listId).updateData([
+                "completionStatus.\(recipientId)": completed,
+                "lastUpdated": Date()
+            ])
+            await loadSharedLists()
+        } catch {
+            print("Error updating completion status: \(error)")
+        }
+    }
+    
+    func getSharedListsForUser() async -> [SharedList] {
+        guard let userId = Auth.auth().currentUser?.uid else { return [] }
+        
+        do {
+            // Get lists where user is a recipient
+            let query = try await db.collection("sharedLists")
+                .whereField("recipientIds", arrayContains: userId)
+                .order(by: "createdAt", descending: true)
+                .getDocuments()
+            
+            return query.documents.compactMap { try? $0.data(as: SharedList.self) }
+        } catch {
+            print("Error fetching shared lists for user: \(error)")
+            return []
         }
     }
 }

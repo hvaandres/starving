@@ -1,6 +1,0 @@
-framework module Pods_starving {
-  umbrella header "Pods-starving-umbrella.h"
-
-  export *
-  module * { export * }
-}
