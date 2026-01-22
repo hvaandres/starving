@@ -5,6 +5,7 @@ struct TodayView: View {
     // MARK: - Properties
     @Environment(\.modelContext) private var context
     @Binding var selectedTab: Tab
+    @StateObject private var firestoreManager = FirestoreManager()
     
     @Query(filter: Day.currentDayPredicate(),
            sort: \.date) private var today: [Day]
@@ -31,6 +32,15 @@ struct TodayView: View {
     private var allItemsCompleted: Bool {
         let visibleItems = currentDay.items.filter { !$0.isHidden }
         return !visibleItems.isEmpty && completedItems.count == visibleItems.count
+    }
+    
+    // Categorize items
+    private var myItems: [Item] {
+        currentDay.items.filter { !$0.isHidden && $0.sharedById == nil }
+    }
+    
+    private var sharedWithMeItems: [Item] {
+        currentDay.items.filter { !$0.isHidden && $0.sharedById != nil }
     }
     
     // MARK: - Body
@@ -92,27 +102,63 @@ struct TodayView: View {
     
     private var itemsList: some View {
         ScrollView {
-            LazyVStack(spacing: 0) {
-                ForEach(currentDay.items.filter { !$0.isHidden }) { item in
-                    TodayItemRow(
-                        item: item,
-                        isCompleted: completedItems.contains(item.id),
-                        onToggle: { toggleItemCompletion(item) },
-                        onDelete: { removeItem(item) }
-                    )
-                    .padding(.horizontal, 20)
-                    
-                    // Subtle divider
-                    if item.id != currentDay.items.filter({ !$0.isHidden }).last?.id {
-                        Divider()
-                            .padding(.leading, 60)
-                            .padding(.trailing, 20)
-                            .opacity(0.3)
+            LazyVStack(spacing: 20) {
+                // My Items Section
+                if !myItems.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        SectionHeaderView(title: "My Items", icon: "person.fill", color: .green)
+                            .padding(.horizontal, 20)
+                        
+                        ForEach(myItems) { item in
+                            TodayItemRow(
+                                item: item,
+                                isCompleted: completedItems.contains(item.id),
+                                onToggle: { toggleItemCompletion(item) },
+                                onDelete: { removeItem(item) },
+                                accentColor: .green
+                            )
+                            .padding(.horizontal, 20)
+                            
+                            if item.id != myItems.last?.id {
+                                Divider()
+                                    .padding(.leading, 60)
+                                    .padding(.trailing, 20)
+                                    .opacity(0.3)
+                            }
+                        }
+                    }
+                }
+                
+                // Shared With Me Section
+                if !sharedWithMeItems.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        SectionHeaderView(title: "Shared With Me", icon: "person.2.fill", color: .blue)
+                            .padding(.horizontal, 20)
+                        
+                        ForEach(sharedWithMeItems) { item in
+                            SharedItemRow(
+                                item: item,
+                                isCompleted: completedItems.contains(item.id),
+                                onToggle: { 
+                                    toggleItemCompletion(item)
+                                    updateSharedItemCompletion(item)
+                                },
+                                onDelete: { removeItem(item) }
+                            )
+                            .padding(.horizontal, 20)
+                            
+                            if item.id != sharedWithMeItems.last?.id {
+                                Divider()
+                                    .padding(.leading, 60)
+                                    .padding(.trailing, 20)
+                                    .opacity(0.3)
+                            }
+                        }
                     }
                 }
             }
             .padding(.vertical, 8)
-            .padding(.bottom, 100) // Add padding to avoid tab bar overlap
+            .padding(.bottom, 100)
         }
     }
     
@@ -263,6 +309,13 @@ struct TodayView: View {
         // Mark all items as hidden instead of removing them
         for item in currentDay.items {
             item.isHidden = true
+            
+            // Update completion status for shared items
+            if let sharedListId = item.sharedListId, let userId = firestoreManager.userPreferences.shareEnabled ? "userId" : nil {
+                Task {
+                    await firestoreManager.updateCompletionStatus(listId: sharedListId, recipientId: userId, completed: true)
+                }
+            }
         }
 
         // Save changes
@@ -274,6 +327,21 @@ struct TodayView: View {
         // Hide confetti after a delay
         DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
             showConfetti = false
+        }
+    }
+    
+    private func updateSharedItemCompletion(_ item: Item) {
+        guard let sharedListId = item.sharedListId else { return }
+        
+        Task {
+            // Get current user ID from AuthManager (we'll need to access it)
+            // For now, we'll update based on completion status
+            let allSharedItemsFromList = sharedWithMeItems.filter { $0.sharedListId == sharedListId }
+            let completedCount = allSharedItemsFromList.filter { completedItems.contains($0.id) }.count
+            let allCompleted = completedCount == allSharedItemsFromList.count
+            
+            // Update in Firestore (would need actual user ID from auth)
+            // await firestoreManager.updateCompletionStatus(listId: sharedListId, recipientId: userId, completed: allCompleted)
         }
     }
 }
@@ -530,8 +598,107 @@ struct Heart: Shape {
     }
 }
 
+// MARK: - Section Header View
+struct SectionHeaderView: View {
+    let title: String
+    let icon: String
+    let color: Color
+    
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(color)
+            
+            Text(title)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(.primary)
+        }
+        .padding(.vertical, 8)
+    }
+}
+
 // MARK: - Today Item Row
 struct TodayItemRow: View {
+    let item: Item
+    let isCompleted: Bool
+    let onToggle: () -> Void
+    let onDelete: () -> Void
+    var accentColor: Color = .blue
+    
+    @State private var isPressed = false
+    
+    var body: some View {
+        HStack(spacing: 16) {
+            // Checkbox button
+            Button(action: {
+                let generator = UIImpactFeedbackGenerator(style: .light)
+                generator.impactOccurred()
+                onToggle()
+            }) {
+                ZStack {
+                    Circle()
+                        .fill(
+                            isCompleted 
+                                ? LinearGradient(
+                                    colors: [accentColor, accentColor.opacity(0.8)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                                : LinearGradient(
+                                    colors: [Color.secondary.opacity(0.1), Color.secondary.opacity(0.05)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                        )
+                        .frame(width: 28, height: 28)
+                        .overlay(
+                            Circle()
+                                .stroke(
+                                    isCompleted ? accentColor.opacity(0.5) : Color.secondary.opacity(0.3),
+                                    lineWidth: 2
+                                )
+                        )
+                    
+                    if isCompleted {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(.white)
+                            .transition(.scale.combined(with: .opacity))
+                    }
+                }
+                .scaleEffect(isPressed ? 0.9 : 1.0)
+                .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isPressed)
+                .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isCompleted)
+            }
+            .buttonStyle(PlainButtonStyle())
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { _ in isPressed = true }
+                    .onEnded { _ in isPressed = false }
+            )
+            
+            // Item title
+            Text(item.title)
+                .font(.system(size: 17))
+                .foregroundColor(isCompleted ? .secondary : .primary)
+                .strikethrough(isCompleted, color: .secondary)
+                .animation(.easeInOut(duration: 0.2), value: isCompleted)
+            
+            Spacer()
+        }
+        .padding(.vertical, 12)
+        .contentShape(Rectangle())
+            .swipeActions(edge: .leading) {
+            Button(role: .destructive, action: onDelete) {
+                Label("Delete", systemImage: "trash")
+            }
+        }
+    }
+}
+
+// MARK: - Shared Item Row
+struct SharedItemRow: View {
     let item: Item
     let isCompleted: Bool
     let onToggle: () -> Void
@@ -589,17 +756,64 @@ struct TodayItemRow: View {
                     .onEnded { _ in isPressed = false }
             )
             
-            // Item title
-            Text(item.title)
-                .font(.system(size: 17))
-                .foregroundColor(isCompleted ? .secondary : .primary)
-                .strikethrough(isCompleted, color: .secondary)
-                .animation(.easeInOut(duration: 0.2), value: isCompleted)
+            // Item content with sender info
+            VStack(alignment: .leading, spacing: 6) {
+                Text(item.title)
+                    .font(.system(size: 17))
+                    .foregroundColor(isCompleted ? .secondary : .primary)
+                    .strikethrough(isCompleted, color: .secondary)
+                
+                // Sender info
+                HStack(spacing: 6) {
+                    // Profile picture or placeholder
+                    if let photoURL = item.sharedByPhotoURL, let url = URL(string: photoURL) {
+                        AsyncImage(url: url) { image in
+                            image
+                                .resizable()
+                                .scaledToFill()
+                        } placeholder: {
+                            Circle()
+                                .fill(Color.blue.opacity(0.2))
+                                .overlay(
+                                    Image(systemName: "person.fill")
+                                        .font(.system(size: 8))
+                                        .foregroundColor(.blue)
+                                )
+                        }
+                        .frame(width: 20, height: 20)
+                        .clipShape(Circle())
+                        .overlay(Circle().stroke(Color.blue.opacity(0.3), lineWidth: 1))
+                    } else {
+                        Circle()
+                            .fill(Color.blue.opacity(0.2))
+                            .frame(width: 20, height: 20)
+                            .overlay(
+                                Image(systemName: "person.fill")
+                                    .font(.system(size: 8))
+                                    .foregroundColor(.blue)
+                            )
+                            .overlay(Circle().stroke(Color.blue.opacity(0.3), lineWidth: 1))
+                    }
+                    
+                    Text("from \(item.sharedByName ?? "Unknown")")
+                        .font(.system(size: 13))
+                        .foregroundColor(.secondary)
+                }
+            }
             
             Spacer()
+            
+            // Completion badge
+            if isCompleted {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 16))
+                    .foregroundColor(.blue)
+                    .transition(.scale.combined(with: .opacity))
+            }
         }
         .padding(.vertical, 12)
         .contentShape(Rectangle())
+        .animation(.easeInOut(duration: 0.2), value: isCompleted)
         .swipeActions(edge: .leading) {
             Button(role: .destructive, action: onDelete) {
                 Label("Delete", systemImage: "trash")

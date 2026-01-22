@@ -14,8 +14,17 @@ class Item: Identifiable {
     var title: String = ""
     var lastUpdated: Date = Date()
     var isHidden: Bool = false
+    var sharedById: String? = nil
+    var sharedByName: String? = nil
+    var sharedByPhotoURL: String? = nil
+    var sharedListId: String? = nil
+    var isCompleted: Bool = false
     
-    init(title: String) {
+    init(title: String, sharedById: String? = nil, sharedByName: String? = nil, sharedByPhotoURL: String? = nil, sharedListId: String? = nil) {
         self.title = title
+        self.sharedById = sharedById
+        self.sharedByName = sharedByName
+        self.sharedByPhotoURL = sharedByPhotoURL
+        self.sharedListId = sharedListId
     }
 }

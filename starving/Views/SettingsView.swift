@@ -5,6 +5,8 @@ struct SettingsView: View {
     @Environment(\.openURL) var openURL
     @Environment(\.colorScheme) var colorScheme
     @EnvironmentObject var authManager: AuthenticationManager
+    @StateObject private var firestoreManager = FirestoreManager()
+    @State private var shareEnabled = false
 
     // MARK: - URLs
     // Changed to use regular https URLs, we'll handle the App Store opening differently
@@ -121,6 +123,33 @@ struct SettingsView: View {
         VStack(alignment: .leading, spacing: 16) {
             SectionHeader(title: "App Options", icon: "gearshape")
             
+            // Item Sharing Toggle
+            HStack {
+                Image(systemName: "square.and.arrow.up.circle.fill")
+                    .font(.system(size: 16))
+                    .frame(width: 32, height: 32)
+                    .background(
+                        Circle()
+                            .fill(Color.indigo.opacity(0.2))
+                    )
+                    .foregroundColor(.indigo)
+                
+                Text("Item Sharing")
+                    .font(.system(size: 16))
+                    .foregroundColor(.primary)
+                
+                Spacer()
+                
+                Toggle("", isOn: $shareEnabled)
+                    .labelsHidden()
+                    .onChange(of: shareEnabled) { _, newValue in
+                        Task {
+                            firestoreManager.userPreferences.shareEnabled = newValue
+                            await firestoreManager.saveUserPreferences()
+                        }
+                    }
+            }
+            
             SettingsButton(icon: "star.fill", text: "Rate on App Store", backgroundColor: Color.yellow.opacity(0.2), iconColor: .yellow) {
                 // Using the StoreKit review request method instead
                 if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
@@ -145,6 +174,12 @@ struct SettingsView: View {
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color(UIColor.secondarySystemBackground))
         )
+        .onAppear {
+            Task {
+                await firestoreManager.loadUserPreferences()
+                shareEnabled = firestoreManager.userPreferences.shareEnabled
+            }
+        }
     }
     
     // MARK: - Connect Section
