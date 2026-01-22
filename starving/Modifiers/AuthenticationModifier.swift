@@ -58,7 +58,7 @@ class AuthenticationManager: ObservableObject {
             return
         }
         
-        let credential = OAuthProvider.credential(withProviderID: "apple.com", idToken: idTokenString, rawNonce: nonce)
+        let credential = OAuthProvider.credential(providerID: AuthProviderID.apple, idToken: idTokenString, rawNonce: nonce)
         
         isLoading = true
         errorMessage = nil
@@ -174,7 +174,7 @@ class AppleSignInDelegate: NSObject, ASAuthorizationControllerDelegate, ASAuthor
                 return
             }
             
-            let credential = OAuthProvider.credential(withProviderID: "apple.com", idToken: idTokenString, rawNonce: nonce)
+            let credential = OAuthProvider.credential(providerID: AuthProviderID.apple, idToken: idTokenString, rawNonce: nonce)
             
             Auth.auth().signIn(with: credential) { [weak self] authResult, error in
                 DispatchQueue.main.async {
