@@ -353,8 +353,7 @@ struct ItemsView: View {
                         toggleItem(item)
                     }
                     .listRowInsets(EdgeInsets(top: 0, leading: 20, bottom: 0, trailing: 20))
-                    .listRowSeparator(.visible)
-                    .listRowSeparatorTint(Color.secondary.opacity(0.3))
+                    .listRowSeparator(.hidden)
                     .listRowBackground(Color.clear)
                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                         Button(role: .destructive) {
@@ -573,11 +572,19 @@ struct ItemsView: View {
             // Action buttons
             HStack(spacing: 8) {
                 // Save button
-                Button(action: { saveEdit() }) {
+                Button(action: { 
+                    // Properly dismiss keyboard
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                    // Save immediately after dismissing
+                    DispatchQueue.main.async {
+                        saveEdit()
+                    }
+                }) {
                     Image(systemName: "checkmark")
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(.white)
                         .frame(width: 44, height: 44)
+                        .contentShape(Circle())
                         .background(
                             Circle()
                                 .fill(
@@ -590,6 +597,7 @@ struct ItemsView: View {
                         )
                         .shadow(color: Color.blue.opacity(0.3), radius: 8, x: 0, y: 4)
                 }
+                .buttonStyle(PlainButtonStyle())
                 .disabled(editedTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 .opacity(editedTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.5 : 1.0)
                 
