@@ -24,6 +24,7 @@ DerivedData/
 
 # Firebase & Google Services
 GoogleService-Info.plist
+GoogleService-Info 2.plist
 google-services.json
 .firebaserc
 firebase-debug.log
