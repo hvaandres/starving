@@ -27,6 +27,11 @@ class HybridDataManager: ObservableObject {
             .assign(to: &$syncStatus)
     }
     
+    // Update authentication state - should be called when auth state changes
+    func updateAuthState(userId: String?) {
+        firestoreManager.updateUserId(userId)
+    }
+    
     func setModelContext(_ context: ModelContext) {
         self.modelContext = context
         

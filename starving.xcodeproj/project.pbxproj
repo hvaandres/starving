@@ -8,10 +8,10 @@
 
 /* Begin PBXBuildFile section */
 		459B0AB5CD7180F9D286AA51 /* Pods_starving.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 127BF464D3DBE509283D5C91 /* Pods_starving.framework */; };
+		A30A55622F22006000FF0A22 /* FirestoreModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30A55612F22006000FF0A22 /* FirestoreModels.swift */; };
 		A334DA702F21DCA500662A76 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = A334DA6F2F21DCA500662A76 /* GoogleService-Info.plist */; };
 		A33FAB2B2D97469D002E508B /* ToolTipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A33FAB2A2D97469D002E508B /* ToolTipView.swift */; };
 		A3421D2C2F1F3F9B00FA7BA1 /* FirestoreManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3421D2B2F1F3F9B00FA7BA1 /* FirestoreManager.swift */; };
-		A3421D342F1F466100FA7BA1 /* FirestoreModels 2.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3421D332F1F466100FA7BA1 /* FirestoreModels 2.swift */; };
 		A3421D362F1F467600FA7BA1 /* UserProfile 2.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3421D352F1F467600FA7BA1 /* UserProfile 2.swift */; };
 		A3421D3A2F1F63F400FA7BA1 /* ItemShareView 2.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3421D392F1F63F400FA7BA1 /* ItemShareView 2.swift */; };
 		A3A5CE692D48A259004FCA74 /* OnBoardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3A5CE682D48A258004FCA74 /* OnBoardingView.swift */; };
@@ -36,10 +36,10 @@
 
 /* Begin PBXFileReference section */
 		127BF464D3DBE509283D5C91 /* Pods_starving.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_starving.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		A30A55612F22006000FF0A22 /* FirestoreModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirestoreModels.swift; sourceTree = "<group>"; };
 		A334DA6F2F21DCA500662A76 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "/Users/alanharo/Downloads/GoogleService-Info.plist"; sourceTree = "<absolute>"; };
 		A33FAB2A2D97469D002E508B /* ToolTipView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolTipView.swift; sourceTree = "<group>"; };
 		A3421D2B2F1F3F9B00FA7BA1 /* FirestoreManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirestoreManager.swift; sourceTree = "<group>"; };
-		A3421D332F1F466100FA7BA1 /* FirestoreModels 2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FirestoreModels 2.swift"; sourceTree = "<group>"; };
 		A3421D352F1F467600FA7BA1 /* UserProfile 2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UserProfile 2.swift"; sourceTree = "<group>"; };
 		A3421D392F1F63F400FA7BA1 /* ItemShareView 2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ItemShareView 2.swift"; sourceTree = "<group>"; };
 		A3A5CE682D48A258004FCA74 /* OnBoardingView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OnBoardingView.swift; sourceTree = "<group>"; };
@@ -139,8 +139,8 @@
 		A3AA415E2D4464E9005BA1D8 /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				A30A55612F22006000FF0A22 /* FirestoreModels.swift */,
 				A3421D352F1F467600FA7BA1 /* UserProfile 2.swift */,
-				A3421D332F1F466100FA7BA1 /* FirestoreModels 2.swift */,
 				A3421D2B2F1F3F9B00FA7BA1 /* FirestoreManager.swift */,
 				A3AA415F2D44654F005BA1D8 /* Item.swift */,
 				A3AA41612D44663B005BA1D8 /* Day.swift */,
@@ -299,6 +299,7 @@
 				A3AA41532D4464B0005BA1D8 /* HomeView.swift in Sources */,
 				A3B01BAD2D489253005FBD51 /* AddItemView.swift in Sources */,
 				A3C595BE2D4967B700E77EF9 /* ItemRow.swift in Sources */,
+				A30A55622F22006000FF0A22 /* FirestoreModels.swift in Sources */,
 				A3AA416B2D446A05005BA1D8 /* SettingsView.swift in Sources */,
 				A3C8B3072D494EDF006D8D07 /* Tab.swift in Sources */,
 				A3A5CE692D48A259004FCA74 /* OnBoardingView.swift in Sources */,
@@ -316,7 +317,6 @@
 				A3AA41652D446938005BA1D8 /* TodayView.swift in Sources */,
 				A3EAA2CB2E276DDF00C39B67 /* LoginView.swift in Sources */,
 				A3AA41512D4464B0005BA1D8 /* starvingApp.swift in Sources */,
-				A3421D342F1F466100FA7BA1 /* FirestoreModels 2.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

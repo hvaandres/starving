@@ -111,10 +111,13 @@ struct SharedList: Codable, Identifiable {
     var description: String?
     var itemIds: [String] // IDs of items in this list
     var itemTitles: [String] // Titles of items for display
+    var items: [[String: String]] // For Firestore rules - array of {id, title}
     var ownerId: String
     var ownerName: String
     var ownerPhotoURL: String?
-    var recipientIds: [String] // User IDs who received this list
+    var sharedWith: [String] // User IDs who received this list (Firestore rules)
+    var isPublic: Bool // Whether list is public (Firestore rules)
+    var recipientIds: [String] // Legacy - kept for backward compatibility
     var completionStatus: [String: Bool] // recipientId -> completed all items
     var createdAt: Date
     var lastUpdated: Date
@@ -125,9 +128,12 @@ struct SharedList: Codable, Identifiable {
         self.description = description
         self.itemIds = []
         self.itemTitles = []
+        self.items = []
         self.ownerId = ownerId
         self.ownerName = ownerName
         self.ownerPhotoURL = ownerPhotoURL
+        self.sharedWith = []
+        self.isPublic = false
         self.recipientIds = []
         self.completionStatus = [:]
         self.createdAt = Date()

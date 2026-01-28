@@ -28,6 +28,14 @@ class AuthenticationManager: ObservableObject {
             DispatchQueue.main.async {
                 self?.user = user
                 self?.isSignedIn = user != nil
+                
+                // Notify that auth state changed - trigger a notification
+                // This allows other managers to refresh their cached user ID
+                NotificationCenter.default.post(
+                    name: .authStateDidChange,
+                    object: nil,
+                    userInfo: ["userId": user?.uid as Any]
+                )
             }
         }
     }
@@ -68,6 +76,10 @@ class AuthenticationManager: ObservableObject {
                 self?.isLoading = false
                 if let error = error {
                     self?.errorMessage = error.localizedDescription
+                } else {
+                    // Force update the published user property
+                    self?.user = Auth.auth().currentUser
+                    self?.isSignedIn = true
                 }
             }
         }
@@ -102,8 +114,14 @@ class AuthenticationManager: ObservableObject {
                 let credential = GoogleAuthProvider.credential(withIDToken: idToken, accessToken: user.accessToken.tokenString)
                 
                 Auth.auth().signIn(with: credential) { authResult, error in
-                    if let error = error {
-                        self?.errorMessage = error.localizedDescription
+                    DispatchQueue.main.async {
+                        if let error = error {
+                            self?.errorMessage = error.localizedDescription
+                        } else {
+                            // Force update the published user property
+                            self?.user = Auth.auth().currentUser
+                            self?.isSignedIn = true
+                        }
                     }
                 }
             }
@@ -180,6 +198,10 @@ class AppleSignInDelegate: NSObject, ASAuthorizationControllerDelegate, ASAuthor
                 DispatchQueue.main.async {
                     if let error = error {
                         self?.authManager.errorMessage = error.localizedDescription
+                    } else {
+                        // Force update the published user property
+                        self?.authManager.user = Auth.auth().currentUser
+                        self?.authManager.isSignedIn = true
                     }
                 }
             }

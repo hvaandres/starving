@@ -22,6 +22,12 @@ struct StarvingApp: App {
         
         FirebaseApp.configure()
         
+        // Configure Firestore with memory-only cache to disable offline persistence
+        let settings = FirestoreSettings()
+        settings.cacheSettings = MemoryCacheSettings()
+        Firestore.firestore().settings = settings
+        print("✅ Firestore configured with memory-only cache (no offline persistence)")
+        
         // Configure Google Sign-In
         if let path = Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist"),
            let plist = NSDictionary(contentsOfFile: path),

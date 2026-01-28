@@ -85,10 +85,13 @@ struct ItemShareView: View {
             } message: { message in
                 Text(message)
             }
-            .onChange(of: showShareSheet) { _, newValue in
-                if newValue && !shareItems.isEmpty {
-                    presentShareSheet()
-                }
+            .sheet(isPresented: $showShareSheet) {
+                ShareSheet(items: shareItems)
+                    .presentationDetents([.medium, .large])
+                    .onDisappear {
+                        shareItems = []
+                        isSharing = false
+                    }
             }
         }
     }
@@ -188,19 +191,23 @@ struct ItemShareView: View {
         }
         
         isSharing = true
+        print("🚀 Starting share process...")
         
         Task {
             do {
                 // Get selected items
                 let itemsToShare = items.filter { selectedItems.contains($0.id) }
                 let itemTitles = itemsToShare.map { $0.title }
+                print("📦 Sharing \(itemTitles.count) items: \(itemTitles)")
                 
                 // Get user info
                 let ownerName = currentUser.displayName ?? "Anonymous"
                 let ownerPhotoURL = currentUser.photoURL?.absoluteString
                 let ownerId = currentUser.uid
+                print("👤 Owner: \(ownerName) (\(ownerId))")
                 
                 // Create shared list in Firestore for tracking
+                print("📝 Creating Firestore document...")
                 guard let listId = await firestoreManager.createSharedList(
                     name: "Shared Items - \(Date().formatted(date: .abbreviated, time: .shortened))",
                     itemIds: itemsToShare.map { $0.id },
@@ -208,8 +215,10 @@ struct ItemShareView: View {
                     ownerName: ownerName,
                     ownerPhotoURL: ownerPhotoURL
                 ) else {
-                    throw NSError(domain: "ShareError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to create shared list"])
+                    print("❌ Failed to create shared list - createSharedList returned nil")
+                    throw NSError(domain: "ShareError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to create shared list. Check Firestore permissions and network connection."])
                 }
+                print("✅ Created shared list with ID: \(listId)")
                 
                 // Create JSON data with the Firestore list ID
                 let shareData: [String: Any] = [
@@ -242,13 +251,9 @@ starving://import/\(listId)
                     print("✅ Setting shareItems and showing sheet")
                     
                     shareItems = [shareText]
+                    showShareSheet = true
                     isSharing = false
-                    
-                    // Add a small delay to ensure state updates
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        showShareSheet = true
-                        print("✅ showShareSheet = \(showShareSheet)")
-                    }
+                    print("✅ showShareSheet = \(showShareSheet), shareItems count: \(shareItems.count)")
                 }
             } catch {
                 await MainActor.run {
@@ -257,41 +262,6 @@ starving://import/\(listId)
                     showError = true
                 }
             }
-        }
-    }
-    
-    private func presentShareSheet() {
-        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-              let rootViewController = windowScene.windows.first?.rootViewController else {
-            print("❌ Could not find root view controller")
-            return
-        }
-        
-        print("✅ Presenting share sheet with \(shareItems.count) items")
-        
-        let activityVC = UIActivityViewController(activityItems: shareItems, applicationActivities: nil)
-        
-        // For iPad
-        if let popover = activityVC.popoverPresentationController {
-            popover.sourceView = rootViewController.view
-            popover.sourceRect = CGRect(x: rootViewController.view.bounds.midX, y: rootViewController.view.bounds.midY, width: 0, height: 0)
-            popover.permittedArrowDirections = []
-        }
-        
-        activityVC.completionWithItemsHandler = { _, completed, _, error in
-            print("Share sheet completed: \(completed), error: \(String(describing: error))")
-            self.showShareSheet = false
-            self.shareItems = []
-        }
-        
-        // Find the topmost presented controller
-        var topController = rootViewController
-        while let presented = topController.presentedViewController {
-            topController = presented
-        }
-        
-        topController.present(activityVC, animated: true) {
-            print("✅ Share sheet presented successfully")
         }
     }
 }
@@ -350,6 +320,43 @@ struct ShareableItemRow: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(PlainButtonStyle())
+    }
+}
+
+// MARK: - Share Sheet Wrapper
+struct ShareSheet: UIViewControllerRepresentable {
+    let items: [Any]
+    @Environment(\.dismiss) private var dismiss
+    
+    func makeUIViewController(context: Context) -> ShareViewController {
+        let controller = ShareViewController()
+        controller.items = items
+        controller.onDismiss = { dismiss() }
+        return controller
+    }
+    
+    func updateUIViewController(_ uiViewController: ShareViewController, context: Context) {
+        uiViewController.items = items
+    }
+}
+
+class ShareViewController: UIViewController {
+    var items: [Any] = []
+    var onDismiss: (() -> Void)?
+    private var activityViewController: UIActivityViewController?
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        guard activityViewController == nil else { return }
+        
+        let vc = UIActivityViewController(activityItems: items, applicationActivities: nil)
+        vc.completionWithItemsHandler = { [weak self] _, _, _, _ in
+            self?.onDismiss?()
+        }
+        
+        activityViewController = vc
+        present(vc, animated: true)
     }
 }
 

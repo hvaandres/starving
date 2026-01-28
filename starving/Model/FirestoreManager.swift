@@ -10,6 +10,11 @@ import FirebaseFirestore
 import FirebaseAuth
 import SwiftUI
 
+// MARK: - Notification Names
+extension Notification.Name {
+    static let authStateDidChange = Notification.Name("authStateDidChange")
+}
+
 class FirestoreManager: ObservableObject {
     private let db = Firestore.firestore()
     
@@ -17,6 +22,52 @@ class FirestoreManager: ObservableObject {
     @Published var isCloudSyncEnabled = false
     @Published var syncStatus: SyncStatus = .idle
     @Published var sharedLists: [SharedList] = []
+    
+    // Cached user ID to avoid race conditions with Auth.auth().currentUser
+    private var cachedUserId: String?
+    
+    init() {
+        // Listen for auth state changes
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleAuthStateChange),
+            name: .authStateDidChange,
+            object: nil
+        )
+        
+        // Initialize with current user
+        cachedUserId = Auth.auth().currentUser?.uid
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+    
+    @objc private func handleAuthStateChange(_ notification: Notification) {
+        if let userId = notification.userInfo?["userId"] as? String {
+            cachedUserId = userId
+            print("[FirestoreManager] ✅ Auth state changed - cached user ID updated to: \(userId)")
+        } else {
+            cachedUserId = nil
+            print("[FirestoreManager] ⚠️ Auth state changed - user signed out")
+        }
+    }
+    
+    // Update the cached user ID - should be called when auth state changes
+    func updateUserId(_ userId: String?) {
+        cachedUserId = userId
+    }
+    
+    // Get current user ID with fallback to Auth.auth().currentUser
+    private func getCurrentUserId() -> String? {
+        // Try cached first, then fall back to Auth.auth().currentUser
+        if let cached = cachedUserId {
+            return cached
+        }
+        let userId = Auth.auth().currentUser?.uid
+        cachedUserId = userId
+        return userId
+    }
     
     enum SyncStatus {
         case idle
@@ -29,7 +80,7 @@ class FirestoreManager: ObservableObject {
     
     @MainActor
     func loadUserPreferences() async {
-        guard let userId = Auth.auth().currentUser?.uid else { return }
+        guard let userId = getCurrentUserId() else { return }
         
         do {
             let document = try await db.collection("userPreferences").document(userId).getDocument()
@@ -46,7 +97,7 @@ class FirestoreManager: ObservableObject {
     
     @MainActor
     func saveUserPreferences() async {
-        guard let userId = Auth.auth().currentUser?.uid else { return }
+        guard let userId = getCurrentUserId() else { return }
         
         do {
             try db.collection("userPreferences").document(userId).setData(from: userPreferences)
@@ -74,7 +125,7 @@ class FirestoreManager: ObservableObject {
     
     @MainActor
     func saveItem(_ item: FirestoreItem) async {
-        guard let userId = Auth.auth().currentUser?.uid,
+        guard let userId = getCurrentUserId(),
               userPreferences.cloudSyncEnabled else { return }
         
         do {
@@ -105,7 +156,7 @@ class FirestoreManager: ObservableObject {
     }
     
     func deleteItem(withId itemId: String) async {
-        guard let userId = Auth.auth().currentUser?.uid,
+        guard let userId = getCurrentUserId(),
               userPreferences.cloudSyncEnabled else { return }
         
         do {
@@ -117,7 +168,7 @@ class FirestoreManager: ObservableObject {
     }
     
     func fetchUserItems() async -> [FirestoreItem] {
-        guard let userId = Auth.auth().currentUser?.uid,
+        guard let userId = getCurrentUserId(),
               userPreferences.cloudSyncEnabled else { return [] }
         
         do {
@@ -136,7 +187,7 @@ class FirestoreManager: ObservableObject {
     // MARK: - Day Management
     
     func saveDay(_ day: FirestoreDay) async {
-        guard let userId = Auth.auth().currentUser?.uid,
+        guard let userId = getCurrentUserId(),
               userPreferences.cloudSyncEnabled else { return }
         
         do {
@@ -153,7 +204,7 @@ class FirestoreManager: ObservableObject {
     }
     
     func fetchUserDays() async -> [FirestoreDay] {
-        guard let userId = Auth.auth().currentUser?.uid,
+        guard let userId = getCurrentUserId(),
               userPreferences.cloudSyncEnabled else { return [] }
         
         do {
@@ -223,23 +274,117 @@ class FirestoreManager: ObservableObject {
     // MARK: - Sharing Functions
     
     func createSharedList(name: String, itemIds: [String], itemTitles: [String], ownerName: String, ownerPhotoURL: String?) async -> String? {
-        guard let userId = Auth.auth().currentUser?.uid else { return nil }
+        print("\n═══════════════════════════════════════════════")
+        print("[FirestoreManager] 🚀 createSharedList called")
+        print("[FirestoreManager] 📝 Name: \(name)")
+        print("[FirestoreManager] 📦 Item count: \(itemIds.count)")
+        print("[FirestoreManager] 📋 Items: \(itemTitles)")
+        
+        
+        guard let userId = getCurrentUserId() else {
+            print("[FirestoreManager] ❌ FAILED: No authenticated user")
+            print("[FirestoreManager] ❌ Cached user ID: \(cachedUserId ?? "nil")")
+            print("[FirestoreManager] ❌ Auth.auth().currentUser: \(Auth.auth().currentUser?.uid ?? "nil")")
+            print("═══════════════════════════════════════════════\n")
+            return nil
+        }
+        print("[FirestoreManager] ✅ User authenticated: \(userId)")
         
         var sharedList = SharedList(name: name, ownerId: userId, ownerName: ownerName, ownerPhotoURL: ownerPhotoURL)
         sharedList.itemIds = itemIds
         sharedList.itemTitles = itemTitles
+        // Populate items array for Firestore rules compatibility
+        sharedList.items = zip(itemIds, itemTitles).map { ["id": $0.0, "title": $0.1] }
+        
+        print("[FirestoreManager] 📄 SharedList object created:")
+        print("  - ownerId: \(sharedList.ownerId)")
+        print("  - ownerName: \(sharedList.ownerName)")
+        print("  - sharedWith: \(sharedList.sharedWith)")
+        print("  - isPublic: \(sharedList.isPublic)")
+        print("  - items count: \(sharedList.items.count)")
+        print("  - recipientIds: \(sharedList.recipientIds)")
+        print("  - itemIds count: \(sharedList.itemIds.count)")
+        print("  - itemTitles count: \(sharedList.itemTitles.count)")
+        print("  - createdAt: \(sharedList.createdAt)")
+        
+        // Log the complete JSON that will be sent to Firestore
+        do {
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = .prettyPrinted
+            let jsonData = try encoder.encode(sharedList)
+            if let jsonString = String(data: jsonData, encoding: .utf8) {
+                print("[FirestoreManager] 📋 Document JSON to be written:")
+                print(jsonString)
+            }
+        } catch {
+            print("[FirestoreManager] ⚠️ Could not encode to JSON: \(error)")
+        }
         
         do {
-            let docRef = try db.collection("sharedLists").addDocument(from: sharedList)
+            print("[FirestoreManager] 📤 Attempting to add document to Firestore...")
+            print("[FirestoreManager] 🎯 Collection: sharedLists")
+            
+            // Create document reference first to get ID
+            let docRef = db.collection("sharedLists").document()
             let listId = docRef.documentID
+            print("[FirestoreManager] 🆔 Generated Document ID: \(listId)")
+            
+            // Create document data manually to ensure all required fields are present
+            let documentData: [String: Any] = [
+                "name": sharedList.name,
+                "description": sharedList.description as Any,
+                "itemIds": sharedList.itemIds,
+                "itemTitles": sharedList.itemTitles,
+                "items": sharedList.items,
+                "ownerId": sharedList.ownerId,
+                "ownerName": sharedList.ownerName,
+                "ownerPhotoURL": sharedList.ownerPhotoURL as Any,
+                "sharedWith": sharedList.sharedWith,
+                "isPublic": sharedList.isPublic,
+                "recipientIds": sharedList.recipientIds,
+                "completionStatus": sharedList.completionStatus,
+                "createdAt": sharedList.createdAt,
+                "lastUpdated": sharedList.lastUpdated
+            ]
+            
+            print("[FirestoreManager] 📊 Document data dictionary:")
+            print(documentData)
+            
+            // Write the document to Firestore
+            print("[FirestoreManager] 💾 Writing document with setData...")
+            try await docRef.setData(documentData)
+            
+            print("[FirestoreManager] ✅ Document added successfully!")
+            print("[FirestoreManager] 🆔 Document ID: \(listId)")
+            print("[FirestoreManager] 🔗 Document path: sharedLists/\(listId)")
             
             // Update with share link
-            try await docRef.updateData(["shareLink": "starving://share/\(listId)"])
+            print("[FirestoreManager] 🔄 Updating shareLink field...")
+            do {
+                try await docRef.updateData(["shareLink": "starving://share/\(listId)"])
+                print("[FirestoreManager] ✅ shareLink updated successfully")
+            } catch {
+                print("[FirestoreManager] ⚠️ Failed to update shareLink: \(error)")
+                print("[FirestoreManager] ⚠️ Error details: \(error.localizedDescription)")
+            }
             
-            await loadSharedLists() // Refresh the list
+            print("[FirestoreManager] 🔄 Loading shared lists...")
+            await loadSharedLists()
+            print("[FirestoreManager] ✅ Shared lists loaded")
+            
+            print("[FirestoreManager] 🎉 SUCCESS! Returning listId: \(listId)")
+            print("═══════════════════════════════════════════════\n")
             return listId
         } catch {
-            print("Error creating shared list: \(error)")
+            print("[FirestoreManager] ❌ ERROR creating shared list!")
+            print("[FirestoreManager] ❌ Error: \(error)")
+            print("[FirestoreManager] ❌ Error description: \(error.localizedDescription)")
+            if let nsError = error as NSError? {
+                print("[FirestoreManager] ❌ Error domain: \(nsError.domain)")
+                print("[FirestoreManager] ❌ Error code: \(nsError.code)")
+                print("[FirestoreManager] ❌ Error userInfo: \(nsError.userInfo)")
+            }
+            print("═══════════════════════════════════════════════\n")
             return nil
         }
     }
@@ -256,34 +401,52 @@ class FirestoreManager: ObservableObject {
     
     @MainActor
     func loadSharedLists() async {
-        guard let userId = Auth.auth().currentUser?.uid else { return }
+        print("[FirestoreManager] 📥 loadSharedLists called")
+        guard let userId = getCurrentUserId() else {
+            print("[FirestoreManager] ⚠️ loadSharedLists: No authenticated user")
+            print("[FirestoreManager] ⚠️ Cached user ID: \(cachedUserId ?? "nil")")
+            print("[FirestoreManager] ⚠️ Auth.auth().currentUser: \(Auth.auth().currentUser?.uid ?? "nil")")
+            return
+        }
+        print("[FirestoreManager] 👤 Loading lists for user: \(userId)")
         
         do {
             // Load lists owned by user
+            print("[FirestoreManager] 🔍 Querying owned lists...")
             let ownedQuery = try await db.collection("sharedLists")
                 .whereField("ownerId", isEqualTo: userId)
                 .getDocuments()
+            print("[FirestoreManager] 📊 Found \(ownedQuery.documents.count) owned lists")
             
             // Load lists where user is a recipient
+            print("[FirestoreManager] 🔍 Querying received lists...")
             let receivedQuery = try await db.collection("sharedLists")
-                .whereField("recipientIds", arrayContains: userId)
+                .whereField("sharedWith", arrayContains: userId)
                 .getDocuments()
+            print("[FirestoreManager] 📊 Found \(receivedQuery.documents.count) received lists")
             
             var allLists: [SharedList] = []
             
             allLists += ownedQuery.documents.compactMap { try? $0.data(as: SharedList.self) }
             allLists += receivedQuery.documents.compactMap { try? $0.data(as: SharedList.self) }
             
+            print("[FirestoreManager] ✅ Total lists loaded: \(allLists.count)")
+            for (index, list) in allLists.enumerated() {
+                print("  [\(index + 1)] \(list.name) (ID: \(list.id ?? "nil")) - \(list.itemTitles.count) items")
+            }
+            
             self.sharedLists = allLists
         } catch {
-            print("Error loading shared lists: \(error)")
+            print("[FirestoreManager] ❌ Error loading shared lists: \(error)")
+            print("[FirestoreManager] ❌ Error details: \(error.localizedDescription)")
         }
     }
     
     func addRecipientToSharedList(listId: String, recipientId: String) async {
         do {
             try await db.collection("sharedLists").document(listId).updateData([
-                "recipientIds": FieldValue.arrayUnion([recipientId]),
+                "sharedWith": FieldValue.arrayUnion([recipientId]),
+                "recipientIds": FieldValue.arrayUnion([recipientId]), // Keep for backward compat
                 "lastUpdated": Date()
             ])
             await loadSharedLists()
@@ -305,12 +468,12 @@ class FirestoreManager: ObservableObject {
     }
     
     func getSharedListsForUser() async -> [SharedList] {
-        guard let userId = Auth.auth().currentUser?.uid else { return [] }
+        guard let userId = getCurrentUserId() else { return [] }
         
         do {
             // Get lists where user is a recipient
             let query = try await db.collection("sharedLists")
-                .whereField("recipientIds", arrayContains: userId)
+                .whereField("sharedWith", arrayContains: userId)
                 .order(by: "createdAt", descending: true)
                 .getDocuments()
             
