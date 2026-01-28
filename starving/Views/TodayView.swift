@@ -45,7 +45,7 @@ struct TodayView: View {
     
     // MARK: - Body
     var body: some View {
-        ZStack(alignment: .bottom) {
+        ZStack {
             Color(.systemBackground)
                 .ignoresSafeArea()
             
@@ -64,11 +64,11 @@ struct TodayView: View {
                 } else {
                     emptyStateView
                 }
-            }
-            
-            // Complete button at bottom - only show when items are selected
-            if hasItemsToday && !completedItems.isEmpty {
-                completeButton
+                
+                // Complete button at bottom - only show when items are selected
+                if hasItemsToday && !completedItems.isEmpty {
+                    completeButton
+                }
             }
         }
         .overlay {
@@ -118,13 +118,6 @@ struct TodayView: View {
                                 accentColor: .green
                             )
                             .padding(.horizontal, 20)
-                            
-                            if item.id != myItems.last?.id {
-                                Divider()
-                                    .padding(.leading, 60)
-                                    .padding(.trailing, 20)
-                                    .opacity(0.3)
-                            }
                         }
                     }
                 }
@@ -146,19 +139,11 @@ struct TodayView: View {
                                 onDelete: { removeItem(item) }
                             )
                             .padding(.horizontal, 20)
-                            
-                            if item.id != sharedWithMeItems.last?.id {
-                                Divider()
-                                    .padding(.leading, 60)
-                                    .padding(.trailing, 20)
-                                    .opacity(0.3)
-                            }
                         }
                     }
                 }
             }
             .padding(.vertical, 8)
-            .padding(.bottom, 100)
         }
     }
     
@@ -283,7 +268,8 @@ struct TodayView: View {
         }
         .disabled(!allItemsCompleted)
         .padding(.horizontal, 20)
-        .padding(.bottom, 100) // Increased from 20 to 100 to avoid tab bar overlap
+        .padding(.top, 12)
+        .padding(.bottom, 20)
     }
     
     // MARK: - Helper Methods
