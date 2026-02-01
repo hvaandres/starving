@@ -102,10 +102,10 @@ struct TodayView: View {
     
     private var itemsList: some View {
         ScrollView {
-            LazyVStack(spacing: 20) {
+            LazyVStack(spacing: 12) {
                 // My Items Section
                 if !myItems.isEmpty {
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 0) {
                         SectionHeaderView(title: "My Items", icon: "person.fill", color: .green)
                             .padding(.horizontal, 20)
                         
@@ -124,7 +124,7 @@ struct TodayView: View {
                 
                 // Shared With Me Section
                 if !sharedWithMeItems.isEmpty {
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 0) {
                         SectionHeaderView(title: "Shared With Me", icon: "person.2.fill", color: .blue)
                             .padding(.horizontal, 20)
                         
@@ -268,7 +268,6 @@ struct TodayView: View {
         }
         .disabled(!allItemsCompleted)
         .padding(.horizontal, 20)
-        .padding(.top, 12)
         .padding(.bottom, 20)
     }
     
