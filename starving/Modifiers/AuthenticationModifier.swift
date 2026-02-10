@@ -16,18 +16,33 @@ class AuthenticationManager: ObservableObject {
     @Published var user: User?
     @Published var isSignedIn: Bool = false
     @Published var isLoading: Bool = false
+    @Published var isRestoringSession: Bool = true  // True until Firebase reports initial state
     @Published var errorMessage: String?
     
+    private var hasReceivedInitialState = false
+    
     init() {
-        // Check if user is already signed in
-        self.user = Auth.auth().currentUser
-        self.isSignedIn = user != nil
+        // Don't check currentUser synchronously - it may not be restored yet
+        // Wait for the state listener to fire with the actual persisted state
+        
+        // DEBUG: Log what currentUser shows synchronously
+        print("🔐 [AUTH] init - currentUser (sync): \(Auth.auth().currentUser?.uid ?? "nil")")
         
         // Listen for auth state changes
         Auth.auth().addStateDidChangeListener { [weak self] _, user in
             DispatchQueue.main.async {
+                // DEBUG: Log what the listener reports
+                print("🔐 [AUTH] stateDidChange - user: \(user?.uid ?? "nil"), isFirstCallback: \(self?.hasReceivedInitialState == false)")
+                
                 self?.user = user
                 self?.isSignedIn = user != nil
+                
+                // Mark that we've received the initial state from Firebase
+                if self?.hasReceivedInitialState == false {
+                    self?.hasReceivedInitialState = true
+                    self?.isRestoringSession = false
+                    print("🔐 [AUTH] Session restored - isSignedIn: \(user != nil)")
+                }
                 
                 // Notify that auth state changed - trigger a notification
                 // This allows other managers to refresh their cached user ID

@@ -63,6 +63,14 @@ struct ContentView: View {
         Group {
             if !hasCompletedOnboarding {
                 OnBoardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
+            } else if authManager.isRestoringSession {
+                // Show loading while Firebase restores the persisted session
+                ZStack {
+                    Color.black.ignoresSafeArea()
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        .scaleEffect(1.5)
+                }
             } else if !authManager.isSignedIn {
                 LoginView(hasCompletedOnboarding: $hasCompletedOnboarding)
             } else {
