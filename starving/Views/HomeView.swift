@@ -3,6 +3,10 @@ import SwiftUI
 struct HomeView: View {
     @State private var selectedTab: Tab = .today
     @State private var showAddItem: Bool = false
+    @State private var showImportSuccess: Bool = false
+    @State private var importedCount: Int = 0
+    @State private var showImportError: Bool = false
+    @State private var importErrorMessage: String = ""
     @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
@@ -96,6 +100,32 @@ struct HomeView: View {
                 .padding(.bottom, 90)
                 .transition(.scale.combined(with: .opacity))
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .sharedItemsImported)) { notification in
+            if let count = notification.userInfo?["count"] as? Int {
+                importedCount = count
+                showImportSuccess = true
+                // Navigate to Items tab to show imported items
+                withAnimation {
+                    selectedTab = .items
+                }
+            }
+        }
+        .alert("Items Imported!", isPresented: $showImportSuccess) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("\(importedCount) item\(importedCount == 1 ? " has" : "s have") been added to your grocery list.")
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .sharedItemsImportFailed)) { notification in
+            if let error = notification.userInfo?["error"] as? String {
+                importErrorMessage = error
+                showImportError = true
+            }
+        }
+        .alert("Import Failed", isPresented: $showImportError) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(importErrorMessage)
         }
     }
 }

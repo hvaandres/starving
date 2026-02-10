@@ -37,11 +37,12 @@
 /* Begin PBXFileReference section */
 		127BF464D3DBE509283D5C91 /* Pods_starving.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_starving.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		A30A55612F22006000FF0A22 /* FirestoreModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirestoreModels.swift; sourceTree = "<group>"; };
-		A334DA6F2F21DCA500662A76 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "/Users/alanharo/Downloads/GoogleService-Info.plist"; sourceTree = "<absolute>"; };
+		A334DA6F2F21DCA500662A76 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		A33FAB2A2D97469D002E508B /* ToolTipView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolTipView.swift; sourceTree = "<group>"; };
 		A3421D2B2F1F3F9B00FA7BA1 /* FirestoreManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirestoreManager.swift; sourceTree = "<group>"; };
 		A3421D352F1F467600FA7BA1 /* UserProfile 2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UserProfile 2.swift"; sourceTree = "<group>"; };
 		A3421D392F1F63F400FA7BA1 /* ItemShareView 2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ItemShareView 2.swift"; sourceTree = "<group>"; };
+		A35E26BB2F3AE41D007C1B7F /* Pods.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Pods.xcodeproj; path = Pods/Pods.xcodeproj; sourceTree = "<group>"; };
 		A3A5CE682D48A258004FCA74 /* OnBoardingView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OnBoardingView.swift; sourceTree = "<group>"; };
 		A3AA414D2D4464B0005BA1D8 /* starving.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = starving.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A3AA41502D4464B0005BA1D8 /* starvingApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = starvingApp.swift; sourceTree = "<group>"; };
@@ -82,6 +83,7 @@
 			isa = PBXGroup;
 			children = (
 				127BF464D3DBE509283D5C91 /* Pods_starving.framework */,
+				A35E26BB2F3AE41D007C1B7F /* Pods.xcodeproj */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -116,8 +118,8 @@
 		A3AA414F2D4464B0005BA1D8 /* starving */ = {
 			isa = PBXGroup;
 			children = (
-				A3EAA2D32E27720000C39B67 /* Info.plist */,
 				A334DA6F2F21DCA500662A76 /* GoogleService-Info.plist */,
+				A3EAA2D32E27720000C39B67 /* Info.plist */,
 				A3CD06102D48BBC30009FAD6 /* Modifiers */,
 				A3AA41632D446737005BA1D8 /* Views */,
 				A3AA415E2D4464E9005BA1D8 /* Model */,
@@ -450,8 +452,8 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_ENTITLEMENTS = starving/starving.entitlements;
-			CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 14;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 14.1;
 				DEVELOPMENT_ASSET_PATHS = "\"starving/Preview Content\"";
 				DEVELOPMENT_TEAM = F26L3GH72M;
 				ENABLE_PREVIEWS = YES;
@@ -462,7 +464,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.3;
+				MARKETING_VERSION = 2.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.hvaandres.starving;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -483,8 +485,8 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_ENTITLEMENTS = starving/starving.entitlements;
-			CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 14;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 14.1;
 				DEVELOPMENT_ASSET_PATHS = "\"starving/Preview Content\"";
 				DEVELOPMENT_TEAM = F26L3GH72M;
 				ENABLE_PREVIEWS = YES;
@@ -495,7 +497,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.3;
+				MARKETING_VERSION = 2.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.hvaandres.starving;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
