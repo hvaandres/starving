@@ -48,10 +48,14 @@ service cloud.firestore {
         (isSignedIn() && (resource.data.ownerId == request.auth.uid || request.auth.uid in resource.data.sharedWith))
       );
 
-      // Update: only owner may update the list content
-      // Optionally allow owners to add users to sharedWith; prevent others from changing ownerId
-      allow update: if isSignedIn() && resource.data.ownerId == request.auth.uid &&
-                    request.resource.data.ownerId == resource.data.ownerId;
+      // Update: owner can update anything, or signed-in users can add themselves to recipientIds
+      allow update: if isSignedIn() && (
+        // Owner can update (but can't change ownerId)
+        (resource.data.ownerId == request.auth.uid && request.resource.data.ownerId == resource.data.ownerId) ||
+        // Non-owners can only add themselves to recipientIds (for import tracking)
+        (resource.data.isPublic == true &&
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['recipientIds', 'lastUpdated']))
+      );
 
       // Delete: only owner
       allow delete: if isSignedIn() && resource.data.ownerId == request.auth.uid;
