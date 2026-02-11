@@ -295,6 +295,8 @@ class FirestoreManager: ObservableObject {
         sharedList.itemTitles = itemTitles
         // Populate items array for Firestore rules compatibility
         sharedList.items = zip(itemIds, itemTitles).map { ["id": $0.0, "title": $0.1] }
+        // Make list public so recipients can read it via share link
+        sharedList.isPublic = true
         
         print("[FirestoreManager] 📄 SharedList object created:")
         print("  - ownerId: \(sharedList.ownerId)")

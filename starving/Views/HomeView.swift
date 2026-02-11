@@ -102,13 +102,17 @@ struct HomeView: View {
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .sharedItemsImported)) { notification in
+            print("🔔 HomeView received sharedItemsImported notification")
             if let count = notification.userInfo?["count"] as? Int {
+                print("🔔 Showing success alert for \(count) items")
                 importedCount = count
                 showImportSuccess = true
                 // Navigate to Items tab to show imported items
                 withAnimation {
                     selectedTab = .items
                 }
+            } else {
+                print("⚠️ Could not extract count from notification")
             }
         }
         .alert("Items Imported!", isPresented: $showImportSuccess) {
@@ -117,9 +121,13 @@ struct HomeView: View {
             Text("\(importedCount) item\(importedCount == 1 ? " has" : "s have") been added to your grocery list.")
         }
         .onReceive(NotificationCenter.default.publisher(for: .sharedItemsImportFailed)) { notification in
+            print("🔔 HomeView received sharedItemsImportFailed notification")
             if let error = notification.userInfo?["error"] as? String {
+                print("🔔 Showing error alert: \(error)")
                 importErrorMessage = error
                 showImportError = true
+            } else {
+                print("⚠️ Could not extract error from notification")
             }
         }
         .alert("Import Failed", isPresented: $showImportError) {

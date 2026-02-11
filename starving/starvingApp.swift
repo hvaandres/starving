@@ -63,6 +63,14 @@ struct ContentView: View {
         Group {
             if !hasCompletedOnboarding {
                 OnBoardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
+            } else if authManager.isRestoringSession {
+                // Show loading while Firebase restores the persisted session
+                ZStack {
+                    Color.black.ignoresSafeArea()
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        .scaleEffect(1.5)
+                }
             } else if !authManager.isSignedIn {
                 LoginView(hasCompletedOnboarding: $hasCompletedOnboarding)
             } else {
@@ -205,14 +213,22 @@ struct ContentView: View {
                     let generator = UINotificationFeedbackGenerator()
                     generator.notificationOccurred(.success)
                     
-                    // Notify UI to refresh
-                    NotificationCenter.default.post(name: .sharedItemsImported, object: nil, userInfo: ["count": itemTitles.count])
+                    // Notify UI to refresh - ensure it's on main thread
+                    print("📢 Posting sharedItemsImported notification with count: \(itemTitles.count)")
+                    DispatchQueue.main.async {
+                        NotificationCenter.default.post(name: .sharedItemsImported, object: nil, userInfo: ["count": itemTitles.count])
+                    }
                 } catch {
                     print("❌ Error saving shared items: \(error)")
+                    DispatchQueue.main.async {
+                        NotificationCenter.default.post(name: .sharedItemsImportFailed, object: nil, userInfo: ["error": "Failed to save items: \(error.localizedDescription)"])
+                    }
                 }
             } catch {
-                print("Error handling shared list: \(error)")
-                NotificationCenter.default.post(name: .sharedItemsImportFailed, object: nil, userInfo: ["error": "Failed to import shared list: \(error.localizedDescription)"])
+                print("❌ Error handling shared list: \(error)")
+                DispatchQueue.main.async {
+                    NotificationCenter.default.post(name: .sharedItemsImportFailed, object: nil, userInfo: ["error": "Failed to import shared list: \(error.localizedDescription)"])
+                }
             }
         }
     }
@@ -261,13 +277,18 @@ struct ContentView: View {
                 generator.notificationOccurred(.success)
                 
                 // Notify UI to refresh
-                NotificationCenter.default.post(name: .sharedItemsImported, object: nil, userInfo: ["count": itemTitles.count])
+                print("📢 Posting sharedItemsImported notification (JSON) with count: \(itemTitles.count)")
+                DispatchQueue.main.async {
+                    NotificationCenter.default.post(name: .sharedItemsImported, object: nil, userInfo: ["count": itemTitles.count])
+                }
                 
                 print("✅ Successfully imported \(itemTitles.count) shared items from \(ownerName)")
                 print("✅ Reported receipt to Firestore list: \(listId)")
             } catch {
-                print("Error importing JSON file: \(error)")
-                NotificationCenter.default.post(name: .sharedItemsImportFailed, object: nil, userInfo: ["error": error.localizedDescription])
+                print("❌ Error importing JSON file: \(error)")
+                DispatchQueue.main.async {
+                    NotificationCenter.default.post(name: .sharedItemsImportFailed, object: nil, userInfo: ["error": error.localizedDescription])
+                }
             }
         }
     }
