@@ -42,17 +42,20 @@ service cloud.firestore {
     match /sharedLists/{listId} {
       allow create: if isSignedIn() && request.resource.data.ownerId == request.auth.uid;
 
-      // Read if public, owner, or in sharedWith
-      allow get, list: if (
+      // Read if authenticated AND (public, owner, or in sharedWith)
+      allow get, list: if isSignedIn() && (
         resource.data.isPublic == true ||
-        (isSignedIn() && (resource.data.ownerId == request.auth.uid || request.auth.uid in resource.data.sharedWith))
+        resource.data.ownerId == request.auth.uid ||
+        request.auth.uid in resource.data.sharedWith
       );
 
-      // Update: owner can update anything, or signed-in users can add themselves to recipientIds
+      // Update rules:
+      // 1. Owner can update anything (except changing ownerId)
+      // 2. Any authenticated user can update only recipientIds/lastUpdated on public lists (for tracking)
       allow update: if isSignedIn() && (
         // Owner can update (but can't change ownerId)
         (resource.data.ownerId == request.auth.uid && request.resource.data.ownerId == resource.data.ownerId) ||
-        // Non-owners can only add themselves to recipientIds (for import tracking)
+        // Non-owners can only update recipientIds and lastUpdated on public lists
         (resource.data.isPublic == true &&
          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['recipientIds', 'lastUpdated']))
       );
